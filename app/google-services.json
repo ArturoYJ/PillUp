@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "781706612522",
+    "project_id": "pillup-5bb97",
+    "storage_bucket": "pillup-5bb97.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:781706612522:android:6ad6d8e2b24a10d0b01853",
+        "android_client_info": {
+          "package_name": "com.pillup"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyByB4-oLT3SBB5ZduFZp-TNNokEnYT2V5s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
