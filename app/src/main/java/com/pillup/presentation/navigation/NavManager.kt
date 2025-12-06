@@ -4,29 +4,31 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.pillup.presentation.views.LoginView
-import com.pillup.presentation.views.RegisterView
-
+import com.pillup.presentation.view.*
+import com.pillup.presentation.viewmodel.LoginViewModel
+import com.pillup.presentation.viewmodel.RegisterViewModel
 
 @Composable
 fun NavManager(navController: NavHostController) {
-
     NavHost(
         navController = navController,
-        startDestination = "login"
+        startDestination = "splash"
     ) {
 
+        composable("splash") {
+            SplashView(navController)
+        }
+
         composable("login") {
-            LoginView(navController)
+            LoginView(navController, LoginViewModel())
         }
 
         composable("register") {
-            RegisterView(navController)
+            RegisterView(navController, RegisterViewModel())
         }
 
-        // 🚧 Más pantallas se agregan después:
-        // composable("home") { HomeView(navController) }
-        // composable("profile") { ProfileView(navController) }
-        // composable("settings") { SettingsView(navController) }
+        composable("home") {
+            HomeView()
+        }
     }
 }

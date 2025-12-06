@@ -71,4 +71,11 @@ dependencies {
 
     // Coroutines para Firebase await()
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
+
+    // Firebase Auth
+    implementation("com.google.firebase:firebase-auth:22.0.0")
+
+    // Firestore
+    implementation("com.google.firebase:firebase-firestore:25.0.0")
+
 }
