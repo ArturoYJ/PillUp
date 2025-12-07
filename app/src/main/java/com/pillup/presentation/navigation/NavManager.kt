@@ -40,5 +40,14 @@ fun NavManager(navController: NavHostController) {
         composable("registrar_medicamento") {
             RegistrarMedicamentoView(navController, medicamentoViewModel)
         }
+
+        composable("ver_todos_medicamentos") {
+            VerTodosMedicamentosView(navController, medicamentoViewModel)
+        }
+
+        composable("detalle_medicamento/{medicamentoId}") { backStackEntry ->
+            val medicamentoId = backStackEntry.arguments?.getString("medicamentoId") ?: ""
+            DetalleMedicamentoView(navController, medicamentoViewModel, medicamentoId)
+        }
     }
 }
