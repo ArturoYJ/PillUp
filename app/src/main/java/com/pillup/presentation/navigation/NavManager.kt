@@ -7,12 +7,14 @@ import androidx.navigation.compose.composable
 import com.pillup.presentation.view.*
 import com.pillup.presentation.viewmodel.LoginViewModel
 import com.pillup.presentation.viewmodel.RegisterViewModel
+import com.pillup.presentation.viewmodel.MedicamentoViewModel
 
 @Composable
 fun NavManager(navController: NavHostController) {
 
     // ViewModels compartidos entre pantallas
     val loginViewModel = LoginViewModel()
+    val medicamentoViewModel = MedicamentoViewModel()
 
     NavHost(
         navController = navController,
@@ -32,8 +34,7 @@ fun NavManager(navController: NavHostController) {
         }
 
         composable("home") {
-            // Pasar el usuario autenticado desde LoginViewModel
-            HomeView(loginViewModel)
+            HomeView(navController, loginViewModel, medicamentoViewModel)
         }
     }
 }
