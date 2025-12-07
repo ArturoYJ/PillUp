@@ -32,6 +32,10 @@ class MedicamentoViewModel(
     private val _medicamentoDetailState = MutableStateFlow<MedicamentoDetailState>(MedicamentoDetailState.Idle)
     val medicamentoDetailState: StateFlow<MedicamentoDetailState> = _medicamentoDetailState
 
+    fun limpiarEstado() {
+        _medicamentoState.value = MedicamentoState.Idle
+    }
+
     fun obtenerMedicamentos() {
         viewModelScope.launch {
             _medicamentoState.value = MedicamentoState.Loading
