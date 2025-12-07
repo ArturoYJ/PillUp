@@ -1,8 +1,7 @@
 package com.pillup.presentation.view
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.PressInteraction
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -34,6 +33,7 @@ fun RegistrarMedicamentoView(
     viewModel: MedicamentoViewModel
 ) {
 
+    // --- Variables del Formulario ---
     var nombre by remember { mutableStateOf("") }
     var dosis by remember { mutableStateOf(1) }
     var primeraToma by remember { mutableStateOf("") }
@@ -43,7 +43,10 @@ fun RegistrarMedicamentoView(
     var instrucciones by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
 
-    // --- Lógica del Calendario (Date Picker) ---
+    // Bandera local para controlar cuándo estamos guardando nosotros
+    var isSaving by remember { mutableStateOf(false) }
+
+    // --- Lógica del Calendario ---
     var showDateRangePicker by remember { mutableStateOf(false) }
     val dateRangePickerState = rememberDateRangePickerState()
 
@@ -88,27 +91,37 @@ fun RegistrarMedicamentoView(
         }
     }
 
+    // --- Estado y Navegación ---
     val medicamentoState by viewModel.medicamentoState.collectAsState()
+
+    // Limpieza de seguridad al entrar
     LaunchedEffect(Unit) {
         viewModel.limpiarEstado()
     }
 
+    // Reacción al guardado (Solo si isSaving es true)
     LaunchedEffect(medicamentoState) {
-        when (medicamentoState) {
-            is com.pillup.presentation.viewmodel.MedicamentoState.Success -> {
-                viewModel.limpiarEstado()
+        if (isSaving) { // IMPORTANTE: Solo reacciona si nosotros iniciamos el guardado
+            when (medicamentoState) {
+                is com.pillup.presentation.viewmodel.MedicamentoState.Success -> {
+                    isSaving = false // Resetear bandera
+                    viewModel.limpiarEstado()
 
-                navController.navigate("ver_todos_medicamentos") {
-                    popUpTo("registrar_medicamento") { inclusive = true }
+                    // Navegar a la lista
+                    navController.navigate("ver_todos_medicamentos") {
+                        popUpTo("registrar_medicamento") { inclusive = true }
+                    }
                 }
+                is com.pillup.presentation.viewmodel.MedicamentoState.Error -> {
+                    isSaving = false // Resetear bandera para permitir reintentar
+                    errorMessage = (medicamentoState as com.pillup.presentation.viewmodel.MedicamentoState.Error).message
+                }
+                else -> {}
             }
-            is com.pillup.presentation.viewmodel.MedicamentoState.Error -> {
-                errorMessage = (medicamentoState as com.pillup.presentation.viewmodel.MedicamentoState.Error).message
-            }
-            else -> {}
         }
     }
 
+    // --- Interfaz ---
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -117,7 +130,7 @@ fun RegistrarMedicamentoView(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        // Header con botón atrás
+        // Header
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
@@ -237,38 +250,37 @@ fun RegistrarMedicamentoView(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Duración (Campo con DatePicker integrado)
+        // Duración (Campo Mejorado con Box Clickable)
         Text(
             text = "Duración del tratamiento:",
             fontSize = 12.sp,
             fontWeight = FontWeight.Bold,
             color = Color(0xFF02316E)
         )
-        OutlinedTextField(
-            value = duracion,
-            onValueChange = { }, // Read-only: se cambia solo con el selector
-            modifier = Modifier.fillMaxWidth(),
-            readOnly = true, // Evita que se abra el teclado
-            placeholder = { Text("Seleccionar fechas") },
-            shape = RoundedCornerShape(8.dp),
-            trailingIcon = {
-                Icon(
-                    Icons.Default.DateRange,
-                    contentDescription = "Calendario",
-                    tint = Color(0xFF02316E)
-                )
-            },
-            interactionSource = remember { MutableInteractionSource() }
-                .also { interactionSource ->
-                    LaunchedEffect(interactionSource) {
-                        interactionSource.interactions.collect {
-                            if (it is PressInteraction.Release) {
-                                showDateRangePicker = true
-                            }
-                        }
-                    }
+
+        Box(modifier = Modifier.fillMaxWidth()) {
+            OutlinedTextField(
+                value = duracion,
+                onValueChange = { },
+                modifier = Modifier.fillMaxWidth(),
+                readOnly = true, // Solo lectura visual
+                placeholder = { Text("Seleccionar fechas") },
+                shape = RoundedCornerShape(8.dp),
+                trailingIcon = {
+                    Icon(
+                        Icons.Default.DateRange,
+                        contentDescription = "Calendario",
+                        tint = Color(0xFF02316E)
+                    )
                 }
-        )
+            )
+            // Box invisible que captura el clic con seguridad
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .clickable { showDateRangePicker = true }
+            )
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -332,7 +344,7 @@ fun RegistrarMedicamentoView(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Error message
+        // Mensaje de error
         if (errorMessage.isNotEmpty()) {
             Text(text = errorMessage, color = Color.Red, fontSize = 12.sp)
             Spacer(modifier = Modifier.height(12.dp))
@@ -344,6 +356,8 @@ fun RegistrarMedicamentoView(
                 if (nombre.isBlank()) {
                     errorMessage = "El nombre del medicamento es requerido"
                 } else {
+                    isSaving = true // Activamos la bandera: "Estamos guardando"
+
                     val medicamento = Medicamento(
                         nombre = nombre,
                         dosis = dosis,
@@ -361,6 +375,7 @@ fun RegistrarMedicamentoView(
                 .height(50.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF02316E)),
             shape = RoundedCornerShape(12.dp),
+            // Deshabilitar botón mientras carga para evitar doble clic
             enabled = medicamentoState != com.pillup.presentation.viewmodel.MedicamentoState.Loading
         ) {
             if (medicamentoState == com.pillup.presentation.viewmodel.MedicamentoState.Loading) {

@@ -32,6 +32,7 @@ class MedicamentoViewModel(
     private val _medicamentoDetailState = MutableStateFlow<MedicamentoDetailState>(MedicamentoDetailState.Idle)
     val medicamentoDetailState: StateFlow<MedicamentoDetailState> = _medicamentoDetailState
 
+    // 🔹 FUNCIÓN CLAVE: Reinicia el estado para evitar redirecciones automáticas
     fun limpiarEstado() {
         _medicamentoState.value = MedicamentoState.Idle
     }
@@ -71,7 +72,7 @@ class MedicamentoViewModel(
             val result = repo.crearMedicamento(medicamento)
 
             _medicamentoState.value = if (result.isSuccess) {
-                obtenerMedicamentos()  // Recargar la lista
+                obtenerMedicamentos()  // Recargar la lista en segundo plano
                 MedicamentoState.Success(emptyList())
             } else {
                 MedicamentoState.Error(result.exceptionOrNull()?.message ?: "Error desconocido")
