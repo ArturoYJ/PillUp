@@ -27,7 +27,7 @@ class LoginViewModel(
 
             _loginState.value = if (result.isSuccess) {
                 val user = result.getOrNull()!!
-                _currentUser.value = user
+                _currentUser.value = user  // Guardamos el usuario aquí
                 LoginState.Success(user)
             } else {
                 LoginState.Error(result.exceptionOrNull()?.message ?: "Error desconocido")

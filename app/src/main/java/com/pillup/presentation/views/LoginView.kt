@@ -30,15 +30,23 @@ fun LoginView(navController: NavController, viewModel: LoginViewModel) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var acceptTerms by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf("") }
 
     val loginState by viewModel.loginState.collectAsState()
 
     // Navegar automáticamente al login exitoso
     LaunchedEffect(loginState) {
-        if (loginState is LoginState.Success) {
-            navController.navigate("home") {
-                popUpTo("login") { inclusive = true }
+        when (loginState) {
+            is LoginState.Success -> {
+                // Reemplaza "home" con tu ruta real
+                navController.navigate("home") {
+                    popUpTo("login") { inclusive = true }
+                }
             }
+            is LoginState.Error -> {
+                errorMessage = (loginState as LoginState.Error).message
+            }
+            else -> {}
         }
     }
 
@@ -72,7 +80,10 @@ fun LoginView(navController: NavController, viewModel: LoginViewModel) {
             // Email
             OutlinedTextField(
                 value = email,
-                onValueChange = { email = it },
+                onValueChange = {
+                    email = it
+                    errorMessage = ""
+                },
                 label = { Text("Correo electrónico") },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp)
@@ -83,7 +94,10 @@ fun LoginView(navController: NavController, viewModel: LoginViewModel) {
             // Password
             OutlinedTextField(
                 value = password,
-                onValueChange = { password = it },
+                onValueChange = {
+                    password = it
+                    errorMessage = ""
+                },
                 label = { Text("Contraseña") },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
@@ -115,7 +129,14 @@ fun LoginView(navController: NavController, viewModel: LoginViewModel) {
             // Botón
             Button(
                 onClick = {
-                    if (acceptTerms && email.isNotBlank() && password.isNotBlank()) {
+                    errorMessage = ""
+                    if (!acceptTerms) {
+                        errorMessage = "Debes aceptar los términos y condiciones"
+                    } else if (email.isBlank()) {
+                        errorMessage = "El correo no puede estar vacío"
+                    } else if (password.isBlank()) {
+                        errorMessage = "La contraseña no puede estar vacía"
+                    } else {
                         viewModel.login(email, password)
                     }
                 },
@@ -126,7 +147,15 @@ fun LoginView(navController: NavController, viewModel: LoginViewModel) {
                 shape = RoundedCornerShape(14.dp),
                 enabled = loginState != LoginState.Loading
             ) {
-                Text("Iniciar sesión", color = Color.White, fontSize = 18.sp)
+                if (loginState == LoginState.Loading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        color = Color.White,
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text("Iniciar sesión", color = Color.White, fontSize = 18.sp)
+                }
             }
 
             Spacer(modifier = Modifier.height(15.dp))
@@ -144,16 +173,15 @@ fun LoginView(navController: NavController, viewModel: LoginViewModel) {
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Mostrar mensajes de estado
-            when (loginState) {
-                is LoginState.Error -> Text(
-                    text = (loginState as LoginState.Error).message,
+            // Mostrar mensajes de error
+            if (errorMessage.isNotEmpty()) {
+                Text(
+                    text = errorMessage,
                     color = Color.Red,
                     fontSize = 14.sp,
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(horizontal = 8.dp)
                 )
-                LoginState.Loading -> CircularProgressIndicator()
-                else -> {}
             }
         }
     }
