@@ -7,12 +7,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material.icons.filled.Remove as RemoveIcon
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material3.Icon
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -101,7 +103,7 @@ fun RegistrarMedicamentoView(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     IconButton(onClick = { if (dosis > 1) dosis-- }, modifier = Modifier.weight(0.3f)) {
-                        Icon(Icons.Default.Remove, contentDescription = "Restar", tint = Color(0xFF1877F2))
+                        Icon(Icons.Default.Add, contentDescription = "Restar", tint = Color(0xFF1877F2), modifier = Modifier.rotate(45f))
                     }
                     Text(
                         text = dosis.toString(),
@@ -112,7 +114,7 @@ fun RegistrarMedicamentoView(
                         color = Color(0xFF02316E)
                     )
                     IconButton(onClick = { dosis++ }, modifier = Modifier.weight(0.3f)) {
-                        Icon(Icons.Default.Add, contentDescription = "Sumar", tint = Color(0xFF1877F2))
+                        Icon(Icons.Default.Add, contentDescription = "Sumar", tint = Color(0xFF02316E))
                     }
                 }
             }
@@ -157,7 +159,7 @@ fun RegistrarMedicamentoView(
             Button(
                 onClick = {},
                 modifier = Modifier.weight(1f).height(50.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1877F2)),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF02316E)),
                 shape = RoundedCornerShape(8.dp)
             ) {
                 Text("Horas", color = Color.White, fontSize = 12.sp)
@@ -199,7 +201,7 @@ fun RegistrarMedicamentoView(
                     onClick = { importancia = imp },
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (importancia == imp) Color(0xFF1877F2) else Color.White
+                        containerColor = if (importancia == imp) Color(0xFF02316E) else Color.White
                     )
                 ) {
                     Text(
@@ -238,7 +240,7 @@ fun RegistrarMedicamentoView(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(8.dp)
         ) {
-            Text("📷 Foto", color = Color(0xFF1877F2), fontSize = 14.sp)
+            Text("📷 Foto", color = Color(0xFF02316E), fontSize = 14.sp)
         }
 
         Spacer(modifier = Modifier.height(20.dp))
@@ -270,7 +272,7 @@ fun RegistrarMedicamentoView(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1877F2)),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF02316E)),
             shape = RoundedCornerShape(12.dp),
             enabled = medicamentoState != com.pillup.presentation.viewmodel.MedicamentoState.Loading
         ) {

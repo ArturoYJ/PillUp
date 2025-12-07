@@ -145,7 +145,7 @@ fun DetalleMedicamentoView(
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(8.dp)
                     ) {
-                        Text("Editar", color = Color(0xFF1877F2), fontSize = 14.sp)
+                        Text("Editar", color = Color(0xFF02316E), fontSize = 14.sp)
                     }
 
                     Button(

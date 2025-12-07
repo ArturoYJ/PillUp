@@ -97,7 +97,7 @@ fun VerTodosMedicamentosView(
                                 Button(
                                     onClick = { navController.navigate("detalle_medicamento/${med.id}") },
                                     modifier = Modifier.fillMaxWidth(),
-                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1877F2)),
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF02316E)),
                                     shape = RoundedCornerShape(8.dp)
                                 ) {
                                     Text("Entrar", color = Color.White, fontSize = 14.sp)

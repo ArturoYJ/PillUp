@@ -94,7 +94,7 @@ fun ContactoEmergenciaView(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1877F2)),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF02316E)),
             shape = RoundedCornerShape(12.dp)
         ) {
             Text("Editar", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
