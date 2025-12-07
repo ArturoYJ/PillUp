@@ -87,8 +87,6 @@ fun RegistrarMedicamentoView(
             )
         }
     }
-    // --- Fin Lógica del Calendario ---
-
     val medicamentoState by viewModel.medicamentoState.collectAsState()
 
     Column(
@@ -242,14 +240,19 @@ fun RegistrarMedicamentoView(
             },
             interactionSource = remember { MutableInteractionSource() }
                 .also { interactionSource ->
-                    LaunchedEffect(interactionSource) {
-                        interactionSource.interactions.collect {
-                            if (it is PressInteraction.Release) {
-                                showDateRangePicker = true
+                    LaunchedEffect(medicamentoState) {
+                        when (medicamentoState) {
+                            is com.pillup.presentation.viewmodel.MedicamentoState.Success -> {
+                                navController.navigate("ver_todos_medicamentos") {
+                                    popUpTo("registrar_medicamento") { inclusive = true }
+                                }
                             }
+                            is com.pillup.presentation.viewmodel.MedicamentoState.Error -> {
+                                errorMessage = (medicamentoState as com.pillup.presentation.viewmodel.MedicamentoState.Error).message
+                            }
+                            else -> {}
                         }
-                    }
-                }
+                    }                }
         )
 
         Spacer(modifier = Modifier.height(16.dp))
