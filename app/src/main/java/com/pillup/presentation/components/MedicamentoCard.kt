@@ -47,7 +47,7 @@ fun MedicamentoCard(
                     color = Color(0xFF02316E)
                 )
                 Text(
-                    text = "${medicamento.dosis} mg",
+                    text = "${medicamento.dosis} Dosis",
                     fontSize = 13.sp,
                     color = Color(0xFF02316E),
                     fontWeight = FontWeight.Bold

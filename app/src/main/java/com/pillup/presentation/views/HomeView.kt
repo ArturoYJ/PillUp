@@ -86,7 +86,7 @@ fun HomeView(
             // Sección ¿Necesitas ayuda?
             Text(
                 text = "¿Necesitas ayuda?",
-                fontSize = 18.sp,
+                fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF02316E),
                 modifier = Modifier
@@ -96,8 +96,8 @@ fun HomeView(
 
             Text(
                 text = "Envía un mensaje a tú contacto de emergencia",
-                fontSize = 14.sp,
-                color = Color.Gray,
+                fontSize = 15.sp,
+                color = Color(0xFF02316E),
                 modifier = Modifier
                     .fillMaxWidth(0.9f)
                     .padding(start = 16.dp, bottom = 12.dp)
@@ -120,7 +120,7 @@ fun HomeView(
             // Medicamentos pendientes - Título
             Text(
                 text = "Tús medicamentos pendientes:",
-                fontSize = 20.sp,
+                fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF02316E),
                 modifier = Modifier
@@ -239,10 +239,10 @@ fun HomeView(
                     modifier = Modifier
                         .weight(1f)
                         .height(50.dp)
-                        .border(2.dp, Color(0xFF1877F2), RoundedCornerShape(12.dp)),
+                        .border(2.dp, Color(0xFF02316E), RoundedCornerShape(12.dp)),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("Ver todos", color = Color(0xFF1877F2), fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                    Text("Ver todos", color = Color(0xFF02316E), fontSize = 14.sp, fontWeight = FontWeight.ExtraBold)
                 }
             }
 
@@ -250,8 +250,8 @@ fun HomeView(
 
             // Configurar contacto emergencia - Título
             Text(
-                text = "¿Configura a tú contacto de emergencia?",
-                fontSize = 18.sp,
+                text = "Configura a tú contacto de emergencia",
+                fontSize = 21.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF02316E),
                 modifier = Modifier
@@ -261,8 +261,8 @@ fun HomeView(
 
             Text(
                 text = "Tú contacto de emergencia te servirá en dado caso necesites alguna ayuda de manera urgente.",
-                fontSize = 12.sp,
-                color = Color.Gray,
+                fontSize = 14.sp,
+                color = Color(0xFF02316E),
                 modifier = Modifier
                     .fillMaxWidth(0.9f)
                     .padding(horizontal = 16.dp, vertical = 8.dp)
