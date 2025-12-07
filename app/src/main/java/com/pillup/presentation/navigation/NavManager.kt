@@ -36,5 +36,9 @@ fun NavManager(navController: NavHostController) {
         composable("home") {
             HomeView(navController, loginViewModel, medicamentoViewModel)
         }
+
+        composable("registrar_medicamento") {
+            RegistrarMedicamentoView(navController, medicamentoViewModel)
+        }
     }
 }
