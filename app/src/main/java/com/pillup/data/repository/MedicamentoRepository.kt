@@ -5,7 +5,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.pillup.data.model.Medicamento
 import kotlinx.coroutines.tasks.await
 
-class MedicamentoRepository(
+class  MedicamentoRepository(
     private val auth: FirebaseAuth = FirebaseAuth.getInstance(),
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
 ) {

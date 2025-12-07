@@ -1,15 +1,16 @@
 package com.pillup.presentation.view
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Remove as RemoveIcon
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material3.Icon
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -22,7 +23,11 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.pillup.data.model.Medicamento
 import com.pillup.presentation.viewmodel.MedicamentoViewModel
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegistrarMedicamentoView(
     navController: NavController,
@@ -37,6 +42,52 @@ fun RegistrarMedicamentoView(
     var importancia by remember { mutableStateOf("Media") }
     var instrucciones by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
+
+    // --- Lógica del Calendario (Date Picker) ---
+    var showDateRangePicker by remember { mutableStateOf(false) }
+    val dateRangePickerState = rememberDateRangePickerState()
+
+    fun convertMillisToDate(millis: Long): String {
+        val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+        return formatter.format(Date(millis))
+    }
+
+    if (showDateRangePicker) {
+        DatePickerDialog(
+            onDismissRequest = { showDateRangePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    if (dateRangePickerState.selectedStartDateMillis != null &&
+                        dateRangePickerState.selectedEndDateMillis != null) {
+                        val inicio = convertMillisToDate(dateRangePickerState.selectedStartDateMillis!!)
+                        val fin = convertMillisToDate(dateRangePickerState.selectedEndDateMillis!!)
+                        duracion = "$inicio - $fin"
+                        showDateRangePicker = false
+                    }
+                }) {
+                    Text("Guardar", color = Color(0xFF02316E))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDateRangePicker = false }) {
+                    Text("Cancelar", color = Color.Red)
+                }
+            }
+        ) {
+            DateRangePicker(
+                state = dateRangePickerState,
+                modifier = Modifier.height(400.dp),
+                title = {
+                    Text(
+                        text = "Selecciona el rango del tratamiento",
+                        modifier = Modifier.padding(16.dp),
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            )
+        }
+    }
+    // --- Fin Lógica del Calendario ---
 
     val medicamentoState by viewModel.medicamentoState.collectAsState()
 
@@ -168,7 +219,7 @@ fun RegistrarMedicamentoView(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Duración
+        // Duración (Campo con DatePicker integrado)
         Text(
             text = "Duración del tratamiento:",
             fontSize = 12.sp,
@@ -177,10 +228,28 @@ fun RegistrarMedicamentoView(
         )
         OutlinedTextField(
             value = duracion,
-            onValueChange = { duracion = it },
+            onValueChange = { }, // Read-only: se cambia solo con el selector
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("dd/MM/yyyy - dd/MM/yyyy") },
-            shape = RoundedCornerShape(8.dp)
+            readOnly = true, // Evita que se abra el teclado
+            placeholder = { Text("Seleccionar fechas") },
+            shape = RoundedCornerShape(8.dp),
+            trailingIcon = {
+                Icon(
+                    Icons.Default.DateRange,
+                    contentDescription = "Calendario",
+                    tint = Color(0xFF02316E)
+                )
+            },
+            interactionSource = remember { MutableInteractionSource() }
+                .also { interactionSource ->
+                    LaunchedEffect(interactionSource) {
+                        interactionSource.interactions.collect {
+                            if (it is PressInteraction.Release) {
+                                showDateRangePicker = true
+                            }
+                        }
+                    }
+                }
         )
 
         Spacer(modifier = Modifier.height(16.dp))
