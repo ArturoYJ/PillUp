@@ -10,6 +10,10 @@ import com.pillup.presentation.viewmodel.RegisterViewModel
 
 @Composable
 fun NavManager(navController: NavHostController) {
+
+    // ViewModels compartidos entre pantallas
+    val loginViewModel = LoginViewModel()
+
     NavHost(
         navController = navController,
         startDestination = "splash"
@@ -20,7 +24,7 @@ fun NavManager(navController: NavHostController) {
         }
 
         composable("login") {
-            LoginView(navController, LoginViewModel())
+            LoginView(navController, loginViewModel)
         }
 
         composable("register") {
@@ -28,7 +32,8 @@ fun NavManager(navController: NavHostController) {
         }
 
         composable("home") {
-            HomeView()
+            // Pasar el usuario autenticado desde LoginViewModel
+            HomeView(loginViewModel)
         }
     }
 }
