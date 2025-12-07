@@ -7,6 +7,7 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -23,8 +24,29 @@ fun BottomNavigation(modifier: Modifier = Modifier) {
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(Icons.Default.Home, contentDescription = "Home", tint = Color(0xFF2563EB))
-        Icon(Icons.Default.Add, contentDescription = "Agregar", tint = Color.Gray)
-        Icon(Icons.Default.Person, contentDescription = "Perfil", tint = Color.Gray)
+        IconButton(onClick = {}) {
+            Icon(
+                Icons.Default.Home,
+                contentDescription = "Home",
+                tint = Color(0xFF1877F2),
+                modifier = Modifier.size(28.dp)
+            )
+        }
+        IconButton(onClick = {}) {
+            Icon(
+                Icons.Default.Add,
+                contentDescription = "Agregar",
+                tint = Color.Gray,
+                modifier = Modifier.size(28.dp)
+            )
+        }
+        IconButton(onClick = {}) {
+            Icon(
+                Icons.Default.Person,
+                contentDescription = "Perfil",
+                tint = Color.Gray,
+                modifier = Modifier.size(28.dp)
+            )
+        }
     }
 }
