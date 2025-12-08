@@ -15,15 +15,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.pillup.presentation.viewmodel.LoginViewModel
+import com.pillup.presentation.viewmodel.ContactoEmergenciaViewModel
 
 @Composable
 fun ContactoEmergenciaView(
     navController: NavController,
-    loginViewModel: LoginViewModel
+    viewModel: ContactoEmergenciaViewModel
 ) {
 
-    val currentUser by loginViewModel.currentUser.collectAsState()
+    val contactoState by viewModel.contactoState.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.obtenerContactoEmergencia()
+    }
 
     Column(
         modifier = Modifier
@@ -51,53 +55,90 @@ fun ContactoEmergenciaView(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5))
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    "Nombre:",
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF02316E),
-                    fontSize = 12.sp
-                )
-                Text("Tu contacto de emergencia", fontSize = 16.sp, color = Color.Gray)
+        when (contactoState) {
+            is com.pillup.presentation.viewmodel.ContactoEmergenciaState.Success -> {
+                val contacto = (contactoState as com.pillup.presentation.viewmodel.ContactoEmergenciaState.Success).contacto
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5))
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            "Nombre:",
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF02316E),
+                            fontSize = 12.sp
+                        )
+                        Text(contacto.nombre, fontSize = 16.sp, color = Color.Gray)
 
-                Text(
-                    "Teléfono:",
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF02316E),
-                    fontSize = 12.sp
-                )
-                Text("+1 (234) 567-8900", fontSize = 16.sp, color = Color.Gray)
+                        Spacer(modifier = Modifier.height(12.dp))
 
-                Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            "Teléfono:",
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF02316E),
+                            fontSize = 12.sp
+                        )
+                        Text(contacto.telefono, fontSize = 16.sp, color = Color.Gray)
 
-                Text(
-                    "Relación:",
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF02316E),
-                    fontSize = 12.sp
-                )
-                Text("Familiar", fontSize = 16.sp, color = Color.Gray)
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        Text(
+                            "Relación:",
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF02316E),
+                            fontSize = 12.sp
+                        )
+                        Text(contacto.relacion, fontSize = 16.sp, color = Color.Gray)
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                Button(
+                    onClick = { navController.navigate("formulario_emergencia") },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF02316E)),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text("Editar", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                }
             }
-        }
+            is com.pillup.presentation.viewmodel.ContactoEmergenciaState.NoExiste -> {
+                Text(
+                    text = "No tienes un contacto de emergencia configurado",
+                    fontSize = 16.sp,
+                    color = Color.Gray,
+                    modifier = Modifier.padding(20.dp)
+                )
 
-        Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(20.dp))
 
-        Button(
-            onClick = { navController.navigate("formulario_emergencia") },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF02316E)),
-            shape = RoundedCornerShape(12.dp)
-        ) {
-            Text("Editar", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                Button(
+                    onClick = { navController.navigate("formulario_emergencia") },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF02316E)),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text("Agregar contacto", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+            is com.pillup.presentation.viewmodel.ContactoEmergenciaState.Error -> {
+                Text(
+                    text = "Error al cargar el contacto",
+                    color = Color.Red,
+                    modifier = Modifier.padding(20.dp)
+                )
+            }
+            else -> {
+                CircularProgressIndicator(modifier = Modifier.padding(20.dp))
+            }
         }
 
         Spacer(modifier = Modifier.height(40.dp))

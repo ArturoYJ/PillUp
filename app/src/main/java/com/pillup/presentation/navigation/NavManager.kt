@@ -8,6 +8,7 @@ import com.pillup.presentation.view.*
 import com.pillup.presentation.viewmodel.LoginViewModel
 import com.pillup.presentation.viewmodel.RegisterViewModel
 import com.pillup.presentation.viewmodel.MedicamentoViewModel
+import com.pillup.presentation.viewmodel.ContactoEmergenciaViewModel
 
 @Composable
 fun NavManager(navController: NavHostController) {
@@ -15,6 +16,7 @@ fun NavManager(navController: NavHostController) {
     // ViewModels compartidos entre pantallas
     val loginViewModel = LoginViewModel()
     val medicamentoViewModel = MedicamentoViewModel()
+    val contactoEmergenciaViewModel = ContactoEmergenciaViewModel()
 
     NavHost(
         navController = navController,
@@ -51,11 +53,11 @@ fun NavManager(navController: NavHostController) {
         }
 
         composable("contacto_emergencia") {
-            ContactoEmergenciaView(navController, loginViewModel)
+            ContactoEmergenciaView(navController, contactoEmergenciaViewModel)
         }
 
         composable("formulario_emergencia") {
-            FormularioEmergenciaView(navController, loginViewModel)
+            FormularioEmergenciaView(navController, contactoEmergenciaViewModel)
         }
     }
 }

@@ -15,18 +15,35 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.pillup.presentation.viewmodel.LoginViewModel
+import com.pillup.data.model.ContactoEmergencia
+import com.pillup.presentation.viewmodel.ContactoEmergenciaViewModel
 
 @Composable
 fun FormularioEmergenciaView(
     navController: NavController,
-    loginViewModel: LoginViewModel
+    viewModel: ContactoEmergenciaViewModel
 ) {
 
     var nombre by remember { mutableStateOf("") }
     var telefono by remember { mutableStateOf("") }
     var relacion by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
+
+    val contactoState by viewModel.contactoState.collectAsState()
+
+    // Cargar datos existentes si existen
+    LaunchedEffect(Unit) {
+        viewModel.obtenerContactoEmergencia()
+    }
+
+    LaunchedEffect(contactoState) {
+        if (contactoState is com.pillup.presentation.viewmodel.ContactoEmergenciaState.Success) {
+            val contacto = (contactoState as com.pillup.presentation.viewmodel.ContactoEmergenciaState.Success).contacto
+            nombre = contacto.nombre
+            telefono = contacto.telefono
+            relacion = contacto.relacion
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -126,7 +143,12 @@ fun FormularioEmergenciaView(
                 } else if (relacion.isBlank()) {
                     errorMessage = "La relación es requerida"
                 } else {
-                    // Aquí irá la lógica de guardar el contacto
+                    val contacto = ContactoEmergencia(
+                        nombre = nombre,
+                        telefono = telefono,
+                        relacion = relacion
+                    )
+                    viewModel.guardarContactoEmergencia(contacto)
                     navController.popBackStack()
                 }
             },
@@ -134,9 +156,14 @@ fun FormularioEmergenciaView(
                 .fillMaxWidth()
                 .height(50.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF02316E)),
-            shape = RoundedCornerShape(12.dp)
+            shape = RoundedCornerShape(12.dp),
+            enabled = contactoState != com.pillup.presentation.viewmodel.ContactoEmergenciaState.Loading
         ) {
-            Text("Guardar", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            if (contactoState == com.pillup.presentation.viewmodel.ContactoEmergenciaState.Loading) {
+                CircularProgressIndicator(modifier = Modifier.size(20.dp), color = Color.White, strokeWidth = 2.dp)
+            } else {
+                Text("Guardar", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            }
         }
 
         Spacer(modifier = Modifier.height(40.dp))
