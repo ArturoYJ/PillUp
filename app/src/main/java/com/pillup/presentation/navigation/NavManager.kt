@@ -9,13 +9,16 @@ import com.pillup.presentation.viewmodel.LoginViewModel
 import com.pillup.presentation.viewmodel.RegisterViewModel
 import com.pillup.presentation.viewmodel.MedicamentoViewModel
 import com.pillup.presentation.viewmodel.ContactoEmergenciaViewModel
+import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun NavManager(navController: NavHostController) {
 
+    val context = LocalContext.current
+
     // ViewModels compartidos entre pantallas
     val loginViewModel = LoginViewModel()
-    val medicamentoViewModel = MedicamentoViewModel()
+    val medicamentoViewModel = MedicamentoViewModel(context = context)
     val contactoEmergenciaViewModel = ContactoEmergenciaViewModel()
 
     NavHost(

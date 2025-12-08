@@ -80,5 +80,7 @@ dependencies {
 
     implementation("androidx.compose.material:material-icons-extended")
 
+    // Si no lo tienes, agrega:
+    implementation("androidx.core:core:1.10.1")
 
 }

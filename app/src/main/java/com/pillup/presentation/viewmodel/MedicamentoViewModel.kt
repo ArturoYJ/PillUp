@@ -2,8 +2,10 @@ package com.pillup.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import android.content.Context
 import com.pillup.data.model.Medicamento
 import com.pillup.data.repository.MedicamentoRepository
+import com.pillup.presentation.manager.NotificationManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -23,19 +25,17 @@ sealed class MedicamentoDetailState {
 }
 
 class MedicamentoViewModel(
-    private val repo: MedicamentoRepository = MedicamentoRepository()
+    private val repo: MedicamentoRepository = MedicamentoRepository(),
+    private val context: Context? = null
 ) : ViewModel() {
+
+    private val notificationManager = context?.let { NotificationManager(it) }
 
     private val _medicamentoState = MutableStateFlow<MedicamentoState>(MedicamentoState.Idle)
     val medicamentoState: StateFlow<MedicamentoState> = _medicamentoState
 
     private val _medicamentoDetailState = MutableStateFlow<MedicamentoDetailState>(MedicamentoDetailState.Idle)
     val medicamentoDetailState: StateFlow<MedicamentoDetailState> = _medicamentoDetailState
-
-    // 🔹 FUNCIÓN CLAVE: Reinicia el estado para evitar redirecciones automáticas
-    fun limpiarEstado() {
-        _medicamentoState.value = MedicamentoState.Idle
-    }
 
     fun obtenerMedicamentos() {
         viewModelScope.launch {
@@ -72,7 +72,19 @@ class MedicamentoViewModel(
             val result = repo.crearMedicamento(medicamento)
 
             _medicamentoState.value = if (result.isSuccess) {
-                obtenerMedicamentos()  // Recargar la lista en segundo plano
+                val medicamentoId = result.getOrNull() ?: ""
+
+                // Programar notificación
+                if (medicamento.primeraToma.isNotEmpty()) {
+                    notificationManager?.programarNotificacionMedicamento(
+                        medicamentoId = medicamentoId,
+                        nombreMedicamento = medicamento.nombre,
+                        horaToma = medicamento.primeraToma,
+                        dosis = medicamento.dosis
+                    )
+                }
+
+                obtenerMedicamentos()  // Recargar la lista
                 MedicamentoState.Success(emptyList())
             } else {
                 MedicamentoState.Error(result.exceptionOrNull()?.message ?: "Error desconocido")
@@ -99,8 +111,16 @@ class MedicamentoViewModel(
             val result = repo.eliminarMedicamento(medicamentoId)
 
             if (result.isSuccess) {
+                // Cancelar notificación
+                notificationManager?.cancelarNotificacionMedicamento(medicamentoId)
+
                 obtenerMedicamentos()  // Recargar la lista
             }
         }
+    }
+
+    fun limpiarEstado() {
+        _medicamentoState.value = MedicamentoState.Idle
+        _medicamentoDetailState.value = MedicamentoDetailState.Idle
     }
 }
