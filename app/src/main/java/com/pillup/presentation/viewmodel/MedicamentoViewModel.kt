@@ -112,4 +112,34 @@ class MedicamentoViewModel(
             }
         }
     }
+
+    fun marcarComoTomado(context: android.content.Context, medicamento: Medicamento) {
+        viewModelScope.launch {
+            // 1. Calcular la NUEVA hora de toma
+            // Usamos la hora "proximaToma" actual como base, o la hora actual si prefieres
+            val nuevaHora = com.pillup.utils.TimeUtils.sumarHoras(medicamento.proximaToma, medicamento.intervalo)
+
+            // 2. Crear objeto actualizado
+            val medicamentoActualizado = medicamento.copy(
+                proximaToma = nuevaHora
+            )
+
+            // 3. Actualizar en Firestore
+            val result = repo.actualizarMedicamento(medicamento.id, medicamentoActualizado)
+
+            if (result.isSuccess) {
+                // 4. Si se guardó bien, reprogramamos la alarma para la nueva hora
+                com.pillup.utils.AlarmScheduler.programarAlarma(
+                    context = context,
+                    nombre = medicamentoActualizado.nombre,
+                    dosis = medicamentoActualizado.dosis.toString(),
+                    horaToma = nuevaHora
+                )
+
+                obtenerMedicamento(medicamento.id)
+            } else {
+            }
+        }
+    }
+
 }

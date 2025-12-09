@@ -34,4 +34,18 @@ object TimeUtils {
             "Error fecha"
         }
     }
+
+    fun sumarHoras(horaBase: String, horasASumar: Int): String {
+        val format = SimpleDateFormat("HH:mm", Locale.getDefault())
+        return try {
+            val dateBase = format.parse(horaBase) ?: return horaBase
+            val calendar = Calendar.getInstance()
+            calendar.time = dateBase
+            calendar.add(Calendar.HOUR_OF_DAY, horasASumar)
+            format.format(calendar.time)
+        } catch (e: Exception) {
+            horaBase // Si falla, devuelve la original para no romper nada
+        }
+    }
+
 }

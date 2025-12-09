@@ -7,6 +7,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -28,7 +29,7 @@ fun DetalleMedicamentoView(
     viewModel: MedicamentoViewModel,
     medicamentoId: String
 ) {
-
+    val context = androidx.compose.ui.platform.LocalContext.current
     val medicamentoDetailState by viewModel.medicamentoDetailState.collectAsState()
 
     LaunchedEffect(Unit) {
@@ -156,6 +157,37 @@ fun DetalleMedicamentoView(
                 Text(med.instrucciones, fontSize = 14.sp, color = Color.Gray)
 
                 Spacer(modifier = Modifier.height(20.dp))
+
+                // BOTÓN DE TOMAR DOSIS (NUEVO)
+                Button(
+                    onClick = {
+                        viewModel.marcarComoTomado(context, med)
+                        // Opcional: Volver atrás o mostrar mensaje de éxito
+                        android.widget.Toast.makeText(context, "¡Dosis registrada! Próxima: ${com.pillup.utils.TimeUtils.sumarHoras(med.proximaToma, med.intervalo)}", android.widget.Toast.LENGTH_LONG).show()
+                        navController.popBackStack()
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(60.dp), // Más alto para que destaque
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)), // Verde éxito
+                    shape = RoundedCornerShape(16.dp),
+                    elevation = ButtonDefaults.buttonElevation(8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = null,
+                        tint = Color.White
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "MARCAR COMO TOMADO",
+                        color = Color.White,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
 
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
