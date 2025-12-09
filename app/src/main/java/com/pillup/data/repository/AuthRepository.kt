@@ -10,6 +10,21 @@ class AuthRepository(
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
 ) {
 
+    suspend fun obtenerDatosUsuario(uid: String): Result<UserData> {
+        return try {
+            val snapshot = db.collection("users")
+                .document(uid)
+                .get()
+                .await()
+
+            val user = snapshot.toObject(UserData::class.java)
+                ?: throw Exception("Usuario no encontrado")
+
+            Result.success(user)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
     suspend fun registerUser(nombre: String, apellidos: String, email: String, password: String): Result<Unit> {
         return try {
             val result = auth.createUserWithEmailAndPassword(email, password).await()
