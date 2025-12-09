@@ -37,13 +37,77 @@ import com.pillup.presentation.viewmodel.MedicamentoViewModel
 import coil.compose.AsyncImage
 import java.io.File
 import androidx.compose.ui.draw.clip
+import android.Manifest
+import android.telephony.SmsManager
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
+import com.pillup.presentation.viewmodel.ContactoEmergenciaViewModel
+import com.pillup.presentation.viewmodel.ContactoEmergenciaState
 
 @Composable
 fun HomeView(
     navController: NavController,
     loginViewModel: LoginViewModel,
-    medicamentoViewModel: MedicamentoViewModel
+    medicamentoViewModel: MedicamentoViewModel,
+    contactoEmergenciaViewModel: ContactoEmergenciaViewModel
 ) {
+
+    val context = LocalContext.current
+    val contactoState by contactoEmergenciaViewModel.contactoState.collectAsState()
+
+    // Cargar el contacto al entrar
+    LaunchedEffect(Unit) {
+        contactoEmergenciaViewModel.obtenerContactoEmergencia()
+    }
+
+    // Función segura para enviar SMS
+    fun enviarSMS() {
+        if (contactoState is ContactoEmergenciaState.Success) {
+            val contacto = (contactoState as ContactoEmergenciaState.Success).contacto
+            val numero = contacto.telefono
+            val mensaje = "¡Ayuda! Necesito asistencia urgente. (Enviado desde PillUp)"
+
+            if (numero.isNotBlank()) {
+                try {
+                    // Intenta obtener el SmsManager de forma segura
+                    val smsManager = try {
+                        context.getSystemService(SmsManager::class.java)
+                    } catch (e: Exception) {
+                        SmsManager.getDefault()
+                    }
+
+                    if (smsManager != null) {
+                        smsManager.sendTextMessage(numero, null, mensaje, null, null)
+                        Toast.makeText(context, "Alerta enviada a ${contacto.nombre}", Toast.LENGTH_LONG).show()
+                    } else {
+                        Toast.makeText(context, "No se pudo acceder al servicio de SMS", Toast.LENGTH_SHORT).show()
+                    }
+                } catch (e: Exception) {
+                    // Captura errores si el dispositivo no tiene chip o es un emulador básico
+                    Toast.makeText(context, "Error al enviar: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                }
+            } else {
+                Toast.makeText(context, "El contacto no tiene número registrado", Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            Toast.makeText(context, "Primero configura un contacto de emergencia", Toast.LENGTH_LONG).show()
+            navController.navigate("formulario_emergencia")
+        }
+    }
+
+    // Lanzador para pedir permiso
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            enviarSMS()
+        } else {
+            Toast.makeText(context, "Se requiere permiso para enviar alertas", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     val currentUser by loginViewModel.currentUser.collectAsState()
     val medicamentoState by medicamentoViewModel.medicamentoState.collectAsState()
@@ -109,7 +173,18 @@ fun HomeView(
 
             // Botón llamada de auxilio
             Button(
-                onClick = { navController.navigate("formulario_emergencia") },
+                onClick = {
+                    // Verificar si ya tenemos permiso
+                    val permissionCheck = ContextCompat.checkSelfPermission(
+                        context,
+                        Manifest.permission.SEND_SMS
+                    )
+                    if (permissionCheck == android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                        enviarSMS()
+                    } else {
+                        permissionLauncher.launch(Manifest.permission.SEND_SMS)
+                    }
+                },
                 modifier = Modifier
                     .fillMaxWidth(0.9f)
                     .height(50.dp),
