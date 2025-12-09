@@ -88,6 +88,7 @@ fun EditarMedicamentoView(
                     if (dateRangePickerState.selectedStartDateMillis != null &&
                         dateRangePickerState.selectedEndDateMillis != null) {
                         val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                        formatter.timeZone = java.util.TimeZone.getTimeZone("UTC")
                         val inicio = formatter.format(Date(dateRangePickerState.selectedStartDateMillis!!))
                         val fin = formatter.format(Date(dateRangePickerState.selectedEndDateMillis!!))
                         duracion = "$inicio - $fin"

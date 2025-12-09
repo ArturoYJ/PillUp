@@ -52,6 +52,7 @@ fun RegistrarMedicamentoView(
 
     fun convertMillisToDate(millis: Long): String {
         val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+        formatter.timeZone = java.util.TimeZone.getTimeZone("UTC")
         return formatter.format(Date(millis))
     }
 
