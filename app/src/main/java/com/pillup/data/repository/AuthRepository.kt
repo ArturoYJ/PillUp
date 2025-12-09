@@ -10,7 +10,6 @@ class AuthRepository(
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
 ) {
 
-    // 🔹 REGISTRO CON FIRESTORE
     suspend fun registerUser(nombre: String, apellidos: String, email: String, password: String): Result<Unit> {
         return try {
             val result = auth.createUserWithEmailAndPassword(email, password).await()
@@ -35,7 +34,6 @@ class AuthRepository(
         }
     }
 
-    // 🔹 LOGIN Y OBTENER PERFIL
     suspend fun loginUser(email: String, password: String): Result<UserData> {
         return try {
             val result = auth.signInWithEmailAndPassword(email, password).await()

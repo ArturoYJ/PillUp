@@ -31,7 +31,6 @@ fun FormularioEmergenciaView(
 
     val contactoState by viewModel.contactoState.collectAsState()
 
-    // Cargar datos existentes si existen
     LaunchedEffect(Unit) {
         viewModel.obtenerContactoEmergencia()
     }
