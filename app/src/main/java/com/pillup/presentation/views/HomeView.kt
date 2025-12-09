@@ -154,14 +154,20 @@ fun HomeView(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            // 2. Botón Izquierda (Anterior)
                             IconButton(
                                 onClick = {
                                     val primerVisible = lazyListState.firstVisibleItemIndex
-                                    if (primerVisible > 0) {
-                                        coroutineScope.launch {
+                                    val desplazamiento = lazyListState.firstVisibleItemScrollOffset
+
+                                    coroutineScope.launch {
+                                        if (primerVisible > 0) {
+                                            // Opción A: No es el primero, retrocedemos uno normal
                                             lazyListState.animateScrollToItem(primerVisible - 1)
+                                        } else if (desplazamiento > 0) {
+                                            // Opción B: ES el primero pero está movido, lo regresamos al inicio (snap)
+                                            lazyListState.animateScrollToItem(0)
                                         }
+                                        // Eliminamos el 'else' que te mandaba al final
                                     }
                                 },
                                 modifier = Modifier
@@ -192,14 +198,18 @@ fun HomeView(
                                 }
                             }
 
-                            // 3. Botón Derecha (Siguiente)
+// Botón Derecha
                             IconButton(
                                 onClick = {
                                     val primerVisible = lazyListState.firstVisibleItemIndex
-                                    if (primerVisible < medicamentos.size - 1) {
-                                        coroutineScope.launch {
+                                    val totalItems = medicamentos.size
+
+                                    coroutineScope.launch {
+                                        // Solo avanzamos si NO estamos en el último
+                                        if (primerVisible < totalItems - 1) {
                                             lazyListState.animateScrollToItem(primerVisible + 1)
                                         }
+                                        // Eliminamos el 'else' que te mandaba al principio
                                     }
                                 },
                                 modifier = Modifier
