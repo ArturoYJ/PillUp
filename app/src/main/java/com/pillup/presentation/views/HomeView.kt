@@ -145,7 +145,21 @@ fun HomeView(
                     } else {
                         // 1. Estado de la lista y Scope para animaciones
                         val lazyListState = rememberLazyListState()
-                        val coroutineScope = rememberCoroutineScope() // <--- AGREGAR ESTO
+                        val coroutineScope = rememberCoroutineScope()
+
+// 2. Detectar si estamos al inicio o al final para habilitar/deshabilitar botones
+// Usamos derivedStateOf para que sea eficiente y no recomponga toda la vista a cada pixel
+                        val canGoBack by remember {
+                            derivedStateOf {
+                                lazyListState.firstVisibleItemIndex > 0 || lazyListState.firstVisibleItemScrollOffset > 0
+                            }
+                        }
+
+                        val canGoForward by remember {
+                            derivedStateOf {
+                                lazyListState.firstVisibleItemIndex < medicamentos.size - 1
+                            }
+                        }
 
                         Row(
                             modifier = Modifier
@@ -154,24 +168,30 @@ fun HomeView(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
+                            // 3. Botón Izquierda (Anterior)
                             IconButton(
                                 onClick = {
-                                    val primerVisible = lazyListState.firstVisibleItemIndex
-                                    val desplazamiento = lazyListState.firstVisibleItemScrollOffset
+                                    val current = lazyListState.firstVisibleItemIndex
+                                    val offset = lazyListState.firstVisibleItemScrollOffset
 
                                     coroutineScope.launch {
-                                        if (primerVisible > 0) {
-                                            // Opción A: No es el primero, retrocedemos uno normal
-                                            lazyListState.animateScrollToItem(primerVisible - 1)
-                                        } else if (desplazamiento > 0) {
-                                            // Opción B: ES el primero pero está movido, lo regresamos al inicio (snap)
-                                            lazyListState.animateScrollToItem(0)
+                                        if (offset > 0) {
+                                            // Si la tarjeta actual está movida, la regresamos a su lugar (Snap)
+                                            lazyListState.animateScrollToItem(current)
+                                        } else if (current > 0) {
+                                            // Si está alineada, vamos a la ANTERIOR
+                                            lazyListState.animateScrollToItem(current - 1)
                                         }
-                                        // Eliminamos el 'else' que te mandaba al final
                                     }
                                 },
+                                // Deshabilitamos si no podemos ir atrás
+                                enabled = canGoBack,
                                 modifier = Modifier
-                                    .background(Color(0xFF02316E), RoundedCornerShape(8.dp))
+                                    .background(
+                                        // Cambia a Gris si está deshabilitado
+                                        if (canGoBack) Color(0xFF02316E) else Color.LightGray,
+                                        RoundedCornerShape(8.dp)
+                                    )
                                     .size(40.dp)
                             ) {
                                 Icon(
@@ -181,7 +201,7 @@ fun HomeView(
                                 )
                             }
 
-                            // Carrusel (Se queda igual, solo aseguramos que use el state)
+                            // Carrusel
                             LazyRow(
                                 state = lazyListState,
                                 modifier = Modifier.weight(1f),
@@ -198,22 +218,22 @@ fun HomeView(
                                 }
                             }
 
-// Botón Derecha
+                            // 4. Botón Derecha (Siguiente)
                             IconButton(
                                 onClick = {
-                                    val primerVisible = lazyListState.firstVisibleItemIndex
-                                    val totalItems = medicamentos.size
-
+                                    val current = lazyListState.firstVisibleItemIndex
                                     coroutineScope.launch {
-                                        // Solo avanzamos si NO estamos en el último
-                                        if (primerVisible < totalItems - 1) {
-                                            lazyListState.animateScrollToItem(primerVisible + 1)
+                                        if (current < medicamentos.size - 1) {
+                                            lazyListState.animateScrollToItem(current + 1)
                                         }
-                                        // Eliminamos el 'else' que te mandaba al principio
                                     }
                                 },
+                                enabled = canGoForward,
                                 modifier = Modifier
-                                    .background(Color(0xFF02316E), RoundedCornerShape(8.dp))
+                                    .background(
+                                        if (canGoForward) Color(0xFF02316E) else Color.LightGray,
+                                        RoundedCornerShape(8.dp)
+                                    )
                                     .size(40.dp)
                             ) {
                                 Icon(
