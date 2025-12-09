@@ -71,16 +71,15 @@ fun MedicamentoCard(
 
             if (medicamento.fotoUrl.isNotEmpty()) {
                 AsyncImage(
-                    model = File(medicamento.fotoUrl), // Cargamos desde el archivo local
+                    model = File(medicamento.fotoUrl),
                     contentDescription = "Foto ${medicamento.nombre}",
                     modifier = Modifier
                         .size(70.dp)
-                        .clip(RoundedCornerShape(8.dp)) // Redondeamos la imagen
+                        .clip(RoundedCornerShape(8.dp))
                         .background(Color.LightGray),
                     contentScale = ContentScale.Crop
                 )
             } else {
-                // Si no tiene foto, mostramos el ícono por defecto (opcional)
                 Image(
                     painter = painterResource(id = android.R.drawable.ic_menu_gallery),
                     contentDescription = "Sin foto",

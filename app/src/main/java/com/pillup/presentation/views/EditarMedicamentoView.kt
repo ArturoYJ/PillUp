@@ -191,7 +191,6 @@ fun EditarMedicamentoView(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Importancia
             Text("Importancia:", fontWeight = FontWeight.Bold, color = Color(0xFF02316E), fontSize = 12.sp)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 listOf("Baja", "Media", "Alta").forEach { imp ->

@@ -34,11 +34,9 @@ fun LoginView(navController: NavController, viewModel: LoginViewModel) {
 
     val loginState by viewModel.loginState.collectAsState()
 
-    // Navegar automáticamente al login exitoso
     LaunchedEffect(loginState) {
         when (loginState) {
             is LoginState.Success -> {
-                // Reemplaza "home" con tu ruta real
                 navController.navigate("home") {
                     popUpTo("login") { inclusive = true }
                 }
@@ -77,7 +75,6 @@ fun LoginView(navController: NavController, viewModel: LoginViewModel) {
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Email
             OutlinedTextField(
                 value = email,
                 onValueChange = {
@@ -91,7 +88,6 @@ fun LoginView(navController: NavController, viewModel: LoginViewModel) {
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Password
             OutlinedTextField(
                 value = password,
                 onValueChange = {
@@ -106,7 +102,6 @@ fun LoginView(navController: NavController, viewModel: LoginViewModel) {
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Checkbox de Términos
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()
@@ -126,7 +121,6 @@ fun LoginView(navController: NavController, viewModel: LoginViewModel) {
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Botón
             Button(
                 onClick = {
                     errorMessage = ""
@@ -160,7 +154,6 @@ fun LoginView(navController: NavController, viewModel: LoginViewModel) {
 
             Spacer(modifier = Modifier.height(15.dp))
 
-            // Link a registro
             Text(
                 text = "¿No tienes cuenta? Regístrate aquí",
                 color = Color(0xFF02316E),
@@ -173,7 +166,6 @@ fun LoginView(navController: NavController, viewModel: LoginViewModel) {
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Mostrar mensajes de error
             if (errorMessage.isNotEmpty()) {
                 Text(
                     text = errorMessage,

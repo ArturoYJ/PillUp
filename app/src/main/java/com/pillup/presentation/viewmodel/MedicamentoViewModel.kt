@@ -41,20 +41,11 @@ class MedicamentoViewModel(
     fun limpiarEstado() {
         _medicamentoState.value = MedicamentoState.Idle
     }
-
-    // 🔹 LÓGICA DE ORDENAMIENTO INTELIGENTE
     private fun ordenarPorProximaToma(lista: List<Medicamento>): List<Medicamento> {
         val sdf = SimpleDateFormat("HH:mm", Locale.getDefault())
         val ahora = Calendar.getInstance()
-        val horaActualStr = sdf.format(ahora.time) // Ej: "14:30"
-
-        // 1. Separamos en dos grupos:
-        //    - "Hoy": Las que son MAYORES o IGUALES a la hora actual.
-        //    - "Mañana": Las que son MENORES a la hora actual.
+        val horaActualStr = sdf.format(ahora.time)
         val (hoy, manana) = lista.partition { it.proximaToma >= horaActualStr }
-
-        // 2. Ordenamos cada subgrupo por hora ascendente
-        // 3. Ponemos primero las de hoy, luego las de mañana
         return hoy.sortedBy { it.proximaToma } + manana.sortedBy { it.proximaToma }
     }
 
@@ -66,7 +57,6 @@ class MedicamentoViewModel(
 
             _medicamentoState.value = if (result.isSuccess) {
                 val listaCruda = result.getOrNull() ?: emptyList()
-                // APLICAMOS EL ORDENAMIENTO AQUÍ
                 val listaOrdenada = ordenarPorProximaToma(listaCruda)
                 MedicamentoState.Success(listaOrdenada)
             } else {
@@ -150,7 +140,7 @@ class MedicamentoViewModel(
                 )
 
                 obtenerMedicamento(medicamento.id)
-                obtenerMedicamentos() // Esto volverá a ordenar la lista automáticamente
+                obtenerMedicamentos()
             }
         }
     }

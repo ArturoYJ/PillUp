@@ -42,7 +42,6 @@ fun RegistrarMedicamentoView(
     viewModel: MedicamentoViewModel
 ) {
 
-    // --- Variables del Formulario ---
     var nombre by remember { mutableStateOf("") }
     var dosis by remember { mutableIntStateOf(1) }
     var primeraToma by remember { mutableStateOf("") }
@@ -52,40 +51,35 @@ fun RegistrarMedicamentoView(
     var instrucciones by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
 
-    // Bandera local para controlar cuándo estamos guardando
     var isSaving by remember { mutableStateOf(false) }
 
-    // --- VARIABLES PARA CÁMARA (NUEVO) ---
-    var fotoUri by remember { mutableStateOf<Uri?>(null) } // Foto final a mostrar/guardar
-    var tempUri by remember { mutableStateOf<Uri?>(null) } // Uri temporal para la cámara
+    var fotoUri by remember { mutableStateOf<Uri?>(null) }
+    var tempUri by remember { mutableStateOf<Uri?>(null) }
     val context = LocalContext.current
 
-    // Lanzador de cámara
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicture()
     ) { success ->
         if (success && tempUri != null) {
-            fotoUri = tempUri // Si tomó la foto, la guardamos en la variable principal
+            fotoUri = tempUri
         }
     }
 
-    // Función auxiliar para crear el archivo temporal
     fun crearArchivoTemporal(): Uri {
         val file = File(context.cacheDir, "foto_med_${System.currentTimeMillis()}.jpg")
         return FileProvider.getUriForFile(
             context,
-            "${context.packageName}.provider", // Debe coincidir con AndroidManifest
+            "${context.packageName}.provider",
             file
         )
     }
 
-    // --- Lógica del Calendario ---
     var showDateRangePicker by remember { mutableStateOf(false) }
     val dateRangePickerState = rememberDateRangePickerState()
 
     fun convertMillisToDate(millis: Long): String {
         val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-        formatter.timeZone = java.util.TimeZone.getTimeZone("UTC") // Corrección de fecha
+        formatter.timeZone = java.util.TimeZone.getTimeZone("UTC")
         return formatter.format(Date(millis))
     }
 
@@ -125,22 +119,18 @@ fun RegistrarMedicamentoView(
         }
     }
 
-    // --- Estado y Navegación ---
     val medicamentoState by viewModel.medicamentoState.collectAsState()
 
-    // Limpieza de seguridad al entrar
     LaunchedEffect(Unit) {
         viewModel.limpiarEstado()
     }
 
-    // Reacción al guardado
     LaunchedEffect(medicamentoState) {
         if (isSaving) {
             when (medicamentoState) {
                 is com.pillup.presentation.viewmodel.MedicamentoState.Success -> {
                     isSaving = false
                     viewModel.limpiarEstado()
-                    // Navegar a la lista
                     navController.navigate("ver_todos_medicamentos") {
                         popUpTo("registrar_medicamento") { inclusive = true }
                     }
@@ -154,7 +144,6 @@ fun RegistrarMedicamentoView(
         }
     }
 
-    // --- Interfaz ---
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -163,7 +152,6 @@ fun RegistrarMedicamentoView(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        // Header
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
@@ -182,7 +170,6 @@ fun RegistrarMedicamentoView(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Nombre
         Text(
             text = "Agrega el nombre del medicamento:",
             fontSize = 14.sp,
@@ -200,7 +187,6 @@ fun RegistrarMedicamentoView(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Dosis y Primera Toma
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
@@ -253,7 +239,6 @@ fun RegistrarMedicamentoView(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Intervalo
         Text(
             text = "Intervalo de tú toma:",
             fontSize = 12.sp,
@@ -283,7 +268,6 @@ fun RegistrarMedicamentoView(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Duración
         Text(
             text = "Duración del tratamiento:",
             fontSize = 12.sp,
@@ -316,7 +300,6 @@ fun RegistrarMedicamentoView(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Importancia
         Text(
             text = "Importancia de tú tratamiento:",
             fontSize = 12.sp,
@@ -346,7 +329,6 @@ fun RegistrarMedicamentoView(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Instrucciones
         Text(
             text = "Instrucciones:",
             fontSize = 12.sp,
@@ -370,7 +352,6 @@ fun RegistrarMedicamentoView(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Botón para tomar foto
             OutlinedButton(
                 onClick = {
                     tempUri = crearArchivoTemporal() // 1. Crear archivo
@@ -383,7 +364,6 @@ fun RegistrarMedicamentoView(
                     color = Color(0xFF02316E), fontSize = 14.sp)
             }
 
-            // Previsualización (Miniatura)
             if (fotoUri != null) {
                 AsyncImage(
                     model = fotoUri,
@@ -398,7 +378,6 @@ fun RegistrarMedicamentoView(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Mensaje de error
         if (errorMessage.isNotEmpty()) {
             Text(text = errorMessage, color = Color.Red, fontSize = 12.sp)
             Spacer(modifier = Modifier.height(12.dp))
@@ -411,34 +390,28 @@ fun RegistrarMedicamentoView(
                 } else {
                     isSaving = true
 
-                    // 1. Lógica de Fecha (Próxima toma)
                     val proximaTomaCalculada = com.pillup.utils.TimeUtils.calcularProximaToma(
                         primeraToma = primeraToma,
                         intervaloHoras = intervalo
                     )
 
-                    // 2. Lógica de Foto LOCAL
                     var rutaFotoLocal = ""
                     if (fotoUri != null) {
                         try {
-                            // Creamos un archivo permanente en la carpeta de la app
                             val nombreArchivo = "img_${System.currentTimeMillis()}.jpg"
                             val archivoPermanente = File(context.filesDir, nombreArchivo)
 
-                            // Copiamos los bytes de la foto temporal al archivo permanente
                             context.contentResolver.openInputStream(fotoUri!!)?.use { input ->
                                 FileOutputStream(archivoPermanente).use { output ->
                                     input.copyTo(output)
                                 }
                             }
-                            // Guardamos la ruta absoluta (ej: /data/user/0/com.pillup/files/img_123.jpg)
                             rutaFotoLocal = archivoPermanente.absolutePath
                         } catch (e: Exception) {
                             e.printStackTrace()
                         }
                     }
 
-                    // 3. Crear objeto (ahora incluimos la fotoUrl aquí directo)
                     val medicamento = Medicamento(
                         nombre = nombre,
                         dosis = dosis,
@@ -448,13 +421,11 @@ fun RegistrarMedicamentoView(
                         importancia = importancia,
                         instrucciones = instrucciones,
                         proximaToma = proximaTomaCalculada,
-                        fotoUrl = rutaFotoLocal // <--- Aquí va la ruta local
+                        fotoUrl = rutaFotoLocal
                     )
 
-                    // 4. Llamar al ViewModel (ya no pide uri, solo el objeto)
                     viewModel.crearMedicamento(medicamento)
 
-                    // Usamos la 'primeraToma' que el usuario ingresó
                     AlarmScheduler.programarAlarma(context, nombre, dosis.toString(), primeraToma)
                     AlarmScheduler.programarAlarmaEmergencia(context, nombre, primeraToma)
 

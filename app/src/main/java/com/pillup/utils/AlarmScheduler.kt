@@ -26,19 +26,17 @@ object AlarmScheduler {
                 set(Calendar.MINUTE, minute)
                 set(Calendar.SECOND, 0)
 
-                // Si la hora ya pasó hoy, programar para mañana
                 if (before(Calendar.getInstance())) {
                     add(Calendar.DATE, 1)
                 }
             }
 
             val intent = Intent(context, AlarmReceiver::class.java).apply {
-                putExtra("TIPO_ALERTA", "RECORDATORIO") // Importante para que el Receiver sepa qué hacer
+                putExtra("TIPO_ALERTA", "RECORDATORIO")
                 putExtra("NOMBRE_MEDICAMENTO", nombre)
                 putExtra("DOSIS_MEDICAMENTO", dosis)
             }
 
-            // ID único basado en el nombre
             val requestCode = nombre.hashCode()
 
             val pendingIntent = PendingIntent.getBroadcast(
@@ -61,7 +59,6 @@ object AlarmScheduler {
         }
     }
 
-    // 2. ALARMA DE EMERGENCIA (SEGURIDAD)
     @SuppressLint("ScheduleExactAlarm")
     fun programarAlarmaEmergencia(context: Context, nombre: String, horaToma: String) {
         try {
@@ -85,7 +82,6 @@ object AlarmScheduler {
                 putExtra("NOMBRE_MEDICAMENTO", nombre)
             }
 
-            // ID único DIFERENTE al recordatorio (hashCode + 1)
             val requestCode = nombre.hashCode() + 1
 
             val pendingIntent = PendingIntent.getBroadcast(
@@ -104,13 +100,12 @@ object AlarmScheduler {
         } catch (e: Exception) { e.printStackTrace() }
     }
 
-    // 3. CANCELAR ALARMA DE EMERGENCIA
     fun cancelarAlarmaEmergencia(context: Context, nombre: String) {
         try {
             val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
             val intent = Intent(context, AlarmReceiver::class.java)
-            val requestCode = nombre.hashCode() + 1 // Debe coincidir con el ID de emergencia
+            val requestCode = nombre.hashCode() + 1
 
             val pendingIntent = PendingIntent.getBroadcast(
                 context, requestCode, intent,

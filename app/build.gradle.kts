@@ -59,7 +59,6 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 
-    // ------- VIEWMODEL + STATE ---------
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
 
@@ -83,7 +82,7 @@ dependencies {
     // Firebase Storage
     implementation("com.google.firebase:firebase-storage")
 
-    // Coil (Para mostrar imágenes en Compose)
+    // Coil para imagenes
     implementation("io.coil-kt:coil-compose:2.6.0")
 
 }

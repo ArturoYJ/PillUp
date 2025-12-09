@@ -61,14 +61,12 @@ fun HomeView(
     val currentUser by loginViewModel.currentUser.collectAsState()
     val medicamentoState by medicamentoViewModel.medicamentoState.collectAsState()
 
-    // Cargas iniciales
     LaunchedEffect(Unit) {
         contactoEmergenciaViewModel.obtenerContactoEmergencia()
         medicamentoViewModel.obtenerMedicamentos()
         loginViewModel.cargarUsuarioActual()
     }
 
-    // 1. DEFINIR LOS PERMISOS SEGÚN LA VERSIÓN DE ANDROID
     val permissionsToRequest = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         arrayOf(
             Manifest.permission.SEND_SMS,
@@ -78,7 +76,6 @@ fun HomeView(
         arrayOf(Manifest.permission.SEND_SMS)
     }
 
-    // 2. FUNCIÓN PARA ENVIAR SMS (Lógica segura)
     fun enviarSMS() {
         if (contactoState is ContactoEmergenciaState.Success) {
             val contacto = (contactoState as ContactoEmergenciaState.Success).contacto
@@ -87,7 +84,6 @@ fun HomeView(
 
             if (numero.isNotBlank()) {
                 try {
-                    // Intento robusto de obtener SmsManager
                     val smsManager = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                         context.getSystemService(SmsManager::class.java) ?: SmsManager.getDefault()
                     } else {
@@ -113,11 +109,9 @@ fun HomeView(
         }
     }
 
-    // 3. LANZADOR DE PERMISOS MÚLTIPLES
     val multiplePermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
-        // Verificamos si se concedió el permiso de SMS (el más crítico para el botón)
         val smsGranted = permissions[Manifest.permission.SEND_SMS] ?: false
 
         if (smsGranted) {
@@ -160,7 +154,6 @@ fun HomeView(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Sección ¿Necesitas ayuda?
             Text(
                 text = "¿Necesitas ayuda?",
                 fontSize = 22.sp,
@@ -176,10 +169,8 @@ fun HomeView(
                 modifier = Modifier.fillMaxWidth(0.9f).padding(start = 16.dp, bottom = 12.dp)
             )
 
-            // 4. BOTÓN DE PÁNICO ACTUALIZADO
             Button(
                 onClick = {
-                    // Verificar si TODOS los permisos necesarios están concedidos
                     val allGranted = permissionsToRequest.all { permission ->
                         ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
                     }
@@ -187,7 +178,6 @@ fun HomeView(
                     if (allGranted) {
                         enviarSMS()
                     } else {
-                        // Si falta alguno, pedimos todos los que falten
                         multiplePermissionLauncher.launch(permissionsToRequest)
                     }
                 },
@@ -202,7 +192,6 @@ fun HomeView(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Medicamentos pendientes
             Text(
                 text = "Tús medicamentos pendientes:",
                 fontSize = 22.sp,
@@ -213,7 +202,6 @@ fun HomeView(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Carrusel de Medicamentos
             when (medicamentoState) {
                 is com.pillup.presentation.viewmodel.MedicamentoState.Success -> {
                     val medicamentos = (medicamentoState as com.pillup.presentation.viewmodel.MedicamentoState.Success).medicamentos
@@ -241,7 +229,6 @@ fun HomeView(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            // Flecha Izquierda
                             IconButton(
                                 onClick = {
                                     val current = lazyListState.firstVisibleItemIndex
@@ -259,7 +246,6 @@ fun HomeView(
                                 Icon(Icons.Default.ChevronLeft, "Anterior", tint = Color.White)
                             }
 
-                            // Lista Carrusel
                             LazyRow(
                                 state = lazyListState,
                                 modifier = Modifier.weight(1f),
@@ -274,7 +260,6 @@ fun HomeView(
                                 }
                             }
 
-                            // Flecha Derecha
                             IconButton(
                                 onClick = {
                                     val current = lazyListState.firstVisibleItemIndex
@@ -302,7 +287,6 @@ fun HomeView(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Botones de acción
             Row(
                 modifier = Modifier.fillMaxWidth(0.9f),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -327,7 +311,6 @@ fun HomeView(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Configurar contacto emergencia
             Text(
                 text = "Configura a tú contacto de emergencia",
                 fontSize = 21.sp,
@@ -354,7 +337,6 @@ fun HomeView(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Notificación final
             Surface(
                 modifier = Modifier.fillMaxWidth(0.9f).background(Color(0xFF1877F2), RoundedCornerShape(12.dp)),
                 shape = RoundedCornerShape(12.dp)
@@ -375,8 +357,6 @@ fun HomeView(
         BottomNavigationBar(navController = navController, modifier = Modifier.align(Alignment.BottomCenter))
     }
 }
-
-// ... El resto de tus componentes (MedicamentoCardCarrusel y BottomNavigationBar) se mantienen igual ...
 @Composable
 fun MedicamentoCardCarrusel(
     medicamento: com.pillup.data.model.Medicamento,
@@ -417,13 +397,12 @@ fun MedicamentoCardCarrusel(
                     contentDescription = null,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(120.dp) // Altura fija para uniformidad
+                        .height(120.dp)
                         .clip(RoundedCornerShape(12.dp))
                         .background(Color(0xFFF5F5F5)),
                     contentScale = ContentScale.Crop
                 )
             } else {
-                // Espacio gris si no hay foto
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -457,7 +436,6 @@ fun MedicamentoCardCarrusel(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Botón Ver foto
             Button(
                 onClick = { onCardClick() },
                 modifier = Modifier
@@ -485,7 +463,6 @@ fun BottomNavigationBar(
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Home
         IconButton(onClick = {}) {
             Icon(
                 Icons.Default.Home,
@@ -495,7 +472,6 @@ fun BottomNavigationBar(
             )
         }
 
-        // Agregar medicamento
         IconButton(onClick = { navController.navigate("registrar_medicamento") }) {
             Icon(
                 Icons.Default.Add,
@@ -505,7 +481,6 @@ fun BottomNavigationBar(
             )
         }
 
-        // Perfil / Contacto de emergencia
         IconButton(onClick = { navController.navigate("contacto_emergencia") }) {
             Icon(
                 Icons.Default.Person,

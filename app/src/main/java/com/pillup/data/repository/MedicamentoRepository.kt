@@ -14,8 +14,6 @@ class  MedicamentoRepository(
     private val storage: FirebaseStorage = FirebaseStorage.getInstance()
 
 ) {
-
-    // 🔹 CREAR MEDICAMENTO
     suspend fun crearMedicamento(medicamento: Medicamento): Result<String> {
         return try {
             val uid = auth.currentUser?.uid ?: throw Exception("Usuario no autenticado")
@@ -32,8 +30,6 @@ class  MedicamentoRepository(
             Result.failure(e)
         }
     }
-
-    // 🔹 OBTENER MEDICAMENTOS DEL USUARIO
     suspend fun obtenerMedicamentos(): Result<List<Medicamento>> {
         return try {
             val uid = auth.currentUser?.uid ?: throw Exception("Usuario no autenticado")
@@ -53,8 +49,6 @@ class  MedicamentoRepository(
             Result.failure(e)
         }
     }
-
-    // 🔹 OBTENER UN MEDICAMENTO POR ID
     suspend fun obtenerMedicamento(medicamentoId: String): Result<Medicamento> {
         return try {
             val uid = auth.currentUser?.uid ?: throw Exception("Usuario no autenticado")
@@ -75,8 +69,6 @@ class  MedicamentoRepository(
             Result.failure(e)
         }
     }
-
-    // 🔹 ACTUALIZAR MEDICAMENTO
     suspend fun actualizarMedicamento(medicamentoId: String, medicamento: Medicamento): Result<Unit> {
         return try {
             val uid = auth.currentUser?.uid ?: throw Exception("Usuario no autenticado")
@@ -93,8 +85,6 @@ class  MedicamentoRepository(
             Result.failure(e)
         }
     }
-
-    // 🔹 ELIMINAR MEDICAMENTO
     suspend fun eliminarMedicamento(medicamentoId: String): Result<Unit> {
         return try {
             val uid = auth.currentUser?.uid ?: throw Exception("Usuario no autenticado")
@@ -114,16 +104,12 @@ class  MedicamentoRepository(
     suspend fun subirImagen(imageUri: Uri): Result<String> {
         return try {
             val uid = auth.currentUser?.uid ?: throw Exception("Usuario no autenticado")
-            // Creamos un nombre único para la imagen
             val fileName = "${UUID.randomUUID()}.jpg"
 
-            // Referencia: users/{uid}/medicamentos/{fileName}
             val ref = storage.reference.child("users/$uid/medicamentos/$fileName")
 
-            // Subir archivo
             ref.putFile(imageUri).await()
 
-            // Obtener URL de descarga
             val downloadUrl = ref.downloadUrl.await()
 
             Result.success(downloadUrl.toString())

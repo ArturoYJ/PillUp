@@ -44,7 +44,7 @@ object TimeUtils {
             calendar.add(Calendar.HOUR_OF_DAY, horasASumar)
             format.format(calendar.time)
         } catch (e: Exception) {
-            horaBase // Si falla, devuelve la original para no romper nada
+            horaBase
         }
     }
 

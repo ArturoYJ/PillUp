@@ -33,7 +33,6 @@ fun NavManager(navController: NavHostController) {
         }
 
         composable("register") {
-            // CORRECCIÓN 2: Usar viewModel() aquí también, no RegisterViewModel()
             val registerViewModel: RegisterViewModel = viewModel()
             RegisterView(navController, registerViewModel)
         }

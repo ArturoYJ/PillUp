@@ -19,10 +19,8 @@ class AlarmReceiver : BroadcastReceiver() {
         val medicamentoDosis = intent.getStringExtra("DOSIS_MEDICAMENTO") ?: ""
 
         if (tipoAlerta == "EMERGENCIA") {
-            // CASO 2: EL USUARIO NO CONFIRMÓ -> ENVIAR SMS
             manejarEmergencia(context, medicamentoNombre)
         } else {
-            // CASO 1: RECORDATORIO NORMAL -> MOSTRAR NOTIFICACIÓN
             mostrarNotificacion(context, medicamentoNombre, medicamentoDosis)
         }
     }
@@ -31,7 +29,6 @@ class AlarmReceiver : BroadcastReceiver() {
         val notificationManager =
             context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-        // Intent para abrir la app
         val tapIntent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }

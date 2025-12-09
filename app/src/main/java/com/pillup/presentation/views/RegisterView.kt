@@ -126,7 +126,6 @@ fun RegisterView(navController: NavController, viewModel: RegisterViewModel) {
                         if (password == confirmPassword) {
                             viewModel.register(names, lastNames, email, password)
                         } else {
-                            // Mostrar error de contraseñas no coinciden
                         }
                     }
                 },

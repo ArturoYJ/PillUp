@@ -103,8 +103,6 @@ fun FormularioEmergenciaView(
         OutlinedTextField(
             value = telefono,
             onValueChange = { newValue ->
-                // Filtro: Solo permitimos caracteres válidos para teléfono
-                // (dígitos, espacios, +, -, paréntesis)
                 if (newValue.all { it.isDigit() || " +()-".contains(it) }) {
                     telefono = newValue
                     errorMessage = ""
@@ -113,7 +111,6 @@ fun FormularioEmergenciaView(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(8.dp),
             placeholder = { Text("Ej: +52 123 456 7890") },
-            // ESTO ES CLAVE: Abre el teclado numérico/telefónico
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
             singleLine = true
         )

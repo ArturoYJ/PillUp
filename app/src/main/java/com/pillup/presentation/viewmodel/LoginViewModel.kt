@@ -14,18 +14,14 @@ class LoginViewModel(
 
     private val _loginState = MutableStateFlow<LoginState>(LoginState.Idle)
     val loginState: StateFlow<LoginState> = _loginState
-
-    // Para almacenar el usuario actual
     private val _currentUser = MutableStateFlow<UserData?>(null)
     val currentUser: StateFlow<UserData?> = _currentUser
 
     fun cargarUsuarioActual() {
-        // Verificamos si Firebase ya tiene un usuario en sesión
         val uid = repo.getCurrentUser()?.uid
 
         if (uid != null) {
             viewModelScope.launch {
-                // Buscamos sus datos (Nombre, Apellido, etc.) en Firestore
                 val result = repo.obtenerDatosUsuario(uid)
 
                 if (result.isSuccess) {
@@ -42,7 +38,7 @@ class LoginViewModel(
 
             _loginState.value = if (result.isSuccess) {
                 val user = result.getOrNull()!!
-                _currentUser.value = user  // Guardamos el usuario aquí
+                _currentUser.value = user
                 LoginState.Success(user)
             } else {
                 LoginState.Error(result.exceptionOrNull()?.message ?: "Error desconocido")

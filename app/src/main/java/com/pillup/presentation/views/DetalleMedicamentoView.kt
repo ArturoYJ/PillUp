@@ -64,7 +64,7 @@ fun DetalleMedicamentoView(
                         contentDescription = med.nombre,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(200.dp) // Imagen prominente
+                            .height(200.dp)
                             .clip(RoundedCornerShape(16.dp))
                             .background(Color.White),
                         contentScale = ContentScale.Crop
@@ -158,18 +158,16 @@ fun DetalleMedicamentoView(
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                // BOTÓN DE TOMAR DOSIS (NUEVO)
                 Button(
                     onClick = {
                         viewModel.marcarComoTomado(context, med)
-                        // Opcional: Volver atrás o mostrar mensaje de éxito
                         android.widget.Toast.makeText(context, "¡Dosis registrada! Próxima: ${com.pillup.utils.TimeUtils.sumarHoras(med.proximaToma, med.intervalo)}", android.widget.Toast.LENGTH_LONG).show()
                         navController.popBackStack()
                     },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(60.dp), // Más alto para que destaque
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)), // Verde éxito
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)),
                     shape = RoundedCornerShape(16.dp),
                     elevation = ButtonDefaults.buttonElevation(8.dp)
                 ) {
@@ -194,7 +192,7 @@ fun DetalleMedicamentoView(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     OutlinedButton(
-                        onClick = { navController.navigate("editar_medicamento/$medicamentoId") }, // Navega a la nueva vista
+                        onClick = { navController.navigate("editar_medicamento/$medicamentoId") },
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(8.dp)
                     ) {
