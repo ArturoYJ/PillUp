@@ -225,6 +225,12 @@ fun EditarMedicamentoView(
                         errorMessage = "El nombre es requerido"
                     } else {
                         isSaving = true
+
+                        val proximaTomaCalculada = com.pillup.utils.TimeUtils.calcularProximaToma(
+                            primeraToma = primeraToma,
+                            intervaloHoras = intervalo
+                        )
+
                         val medicamentoActualizado = Medicamento(
                             id = medicamentoId,
                             nombre = nombre,
@@ -234,6 +240,7 @@ fun EditarMedicamentoView(
                             duracion = duracion,
                             importancia = importancia,
                             instrucciones = instrucciones,
+                            proximaToma = proximaTomaCalculada
                         )
                         viewModel.actualizarMedicamento(medicamentoId, medicamentoActualizado)
                     }

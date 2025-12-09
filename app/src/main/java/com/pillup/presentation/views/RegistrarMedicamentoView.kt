@@ -358,6 +358,11 @@ fun RegistrarMedicamentoView(
                 } else {
                     isSaving = true // Activamos la bandera: "Estamos guardando"
 
+                    val proximaTomaCalculada = com.pillup.utils.TimeUtils.calcularProximaToma(
+                        primeraToma = primeraToma,
+                        intervaloHoras = intervalo
+                    )
+
                     val medicamento = Medicamento(
                         nombre = nombre,
                         dosis = dosis,
@@ -365,7 +370,8 @@ fun RegistrarMedicamentoView(
                         intervalo = intervalo,
                         duracion = duracion,
                         importancia = importancia,
-                        instrucciones = instrucciones
+                        instrucciones = instrucciones,
+                        proximaToma = proximaTomaCalculada
                     )
                     viewModel.crearMedicamento(medicamento)
                 }
