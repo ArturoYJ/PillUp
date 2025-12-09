@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import kotlinx.coroutines.launch
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -142,7 +143,9 @@ fun HomeView(
                             modifier = Modifier.padding(20.dp)
                         )
                     } else {
+                        // 1. Estado de la lista y Scope para animaciones
                         val lazyListState = rememberLazyListState()
+                        val coroutineScope = rememberCoroutineScope() // <--- AGREGAR ESTO
 
                         Row(
                             modifier = Modifier
@@ -151,10 +154,15 @@ fun HomeView(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            // Botón izquierda
+                            // 2. Botón Izquierda (Anterior)
                             IconButton(
                                 onClick = {
-                                    // Scroll izquierda
+                                    val primerVisible = lazyListState.firstVisibleItemIndex
+                                    if (primerVisible > 0) {
+                                        coroutineScope.launch {
+                                            lazyListState.animateScrollToItem(primerVisible - 1)
+                                        }
+                                    }
                                 },
                                 modifier = Modifier
                                     .background(Color(0xFF02316E), RoundedCornerShape(8.dp))
@@ -167,7 +175,7 @@ fun HomeView(
                                 )
                             }
 
-                            // Carrusel
+                            // Carrusel (Se queda igual, solo aseguramos que use el state)
                             LazyRow(
                                 state = lazyListState,
                                 modifier = Modifier.weight(1f),
@@ -184,10 +192,15 @@ fun HomeView(
                                 }
                             }
 
-                            // Botón derecha
+                            // 3. Botón Derecha (Siguiente)
                             IconButton(
                                 onClick = {
-                                    // Scroll derecha
+                                    val primerVisible = lazyListState.firstVisibleItemIndex
+                                    if (primerVisible < medicamentos.size - 1) {
+                                        coroutineScope.launch {
+                                            lazyListState.animateScrollToItem(primerVisible + 1)
+                                        }
+                                    }
                                 },
                                 modifier = Modifier
                                     .background(Color(0xFF02316E), RoundedCornerShape(8.dp))
