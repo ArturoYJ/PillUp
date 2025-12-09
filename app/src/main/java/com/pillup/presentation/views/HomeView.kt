@@ -34,6 +34,9 @@ import androidx.navigation.NavController
 import com.pillup.R
 import com.pillup.presentation.viewmodel.LoginViewModel
 import com.pillup.presentation.viewmodel.MedicamentoViewModel
+import coil.compose.AsyncImage
+import java.io.File
+import androidx.compose.ui.draw.clip
 
 @Composable
 fun HomeView(
@@ -148,8 +151,6 @@ fun HomeView(
                         val lazyListState = rememberLazyListState()
                         val coroutineScope = rememberCoroutineScope()
 
-// 2. Detectar si estamos al inicio o al final para habilitar/deshabilitar botones
-// Usamos derivedStateOf para que sea eficiente y no recomponga toda la vista a cada pixel
                         val canGoBack by remember {
                             derivedStateOf {
                                 lazyListState.firstVisibleItemIndex > 0 || lazyListState.firstVisibleItemScrollOffset > 0
@@ -397,6 +398,35 @@ fun MedicamentoCardCarrusel(
                 fontSize = 14.sp,
                 color = Color.Gray
             )
+            Spacer(modifier = Modifier.height(12.dp))
+
+            if (medicamento.fotoUrl.isNotEmpty()) {
+                AsyncImage(
+                    model = File(medicamento.fotoUrl),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(120.dp) // Altura fija para uniformidad
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Color(0xFFF5F5F5)),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                // Espacio gris si no hay foto
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(120.dp)
+                        .background(Color(0xFFF5F5F5), RoundedCornerShape(12.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        painter = painterResource(id = android.R.drawable.ic_menu_camera),
+                        contentDescription = null,
+                        tint = Color.LightGray
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(12.dp))
 

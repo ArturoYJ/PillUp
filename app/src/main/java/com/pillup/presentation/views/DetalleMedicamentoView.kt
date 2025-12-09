@@ -1,11 +1,12 @@
 package com.pillup.presentation.view
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -15,6 +16,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
+import java.io.File
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.draw.clip
 import com.pillup.presentation.viewmodel.MedicamentoViewModel
 
 @Composable
@@ -42,13 +47,29 @@ fun DetalleMedicamentoView(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = { navController.popBackStack() }) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "Volver", tint = Color(0xFF02316E))
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = Color(0xFF02316E))
             }
         }
 
         when (medicamentoDetailState) {
             is com.pillup.presentation.viewmodel.MedicamentoDetailState.Success -> {
                 val med = (medicamentoDetailState as com.pillup.presentation.viewmodel.MedicamentoDetailState.Success).medicamento
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                if (med.fotoUrl.isNotEmpty()) {
+                    AsyncImage(
+                        model = File(med.fotoUrl),
+                        contentDescription = med.nombre,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp) // Imagen prominente
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(Color.White),
+                        contentScale = ContentScale.Crop
+                    )
+                    Spacer(modifier = Modifier.height(20.dp))
+                }
 
                 Text(
                     text = "Tú medicamento",
