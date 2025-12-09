@@ -71,8 +71,7 @@ fun HomeView(
             // Saludo
             if (currentUser != null) {
                 Text(
-                    text = "Bienvenido ${currentUser!!.nombre}",
-                    fontSize = 32.sp,
+                    text = "Bienvenido ${currentUser?.nombre ?: "Usuario"}",                    fontSize = 32.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF02316E),
                     modifier = Modifier
