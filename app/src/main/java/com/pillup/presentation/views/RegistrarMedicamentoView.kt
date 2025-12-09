@@ -33,6 +33,7 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import com.pillup.utils.AlarmScheduler
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -453,6 +454,15 @@ fun RegistrarMedicamentoView(
 
                     // 4. Llamar al ViewModel (ya no pide uri, solo el objeto)
                     viewModel.crearMedicamento(medicamento)
+
+                    // Usamos la 'primeraToma' que el usuario ingresó
+                    AlarmScheduler.programarAlarma(
+                        context = context,
+                        nombre = nombre,
+                        dosis = dosis.toString(),
+                        horaToma = primeraToma
+                    )
+
                 }
             },
             modifier = Modifier
