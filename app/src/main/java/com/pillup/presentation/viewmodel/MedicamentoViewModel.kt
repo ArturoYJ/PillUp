@@ -10,6 +10,9 @@ import com.pillup.utils.TimeUtils
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 
 sealed class MedicamentoState {
     object Idle : MedicamentoState()
@@ -35,9 +38,24 @@ class MedicamentoViewModel(
     private val _medicamentoDetailState = MutableStateFlow<MedicamentoDetailState>(MedicamentoDetailState.Idle)
     val medicamentoDetailState: StateFlow<MedicamentoDetailState> = _medicamentoDetailState
 
-    // 🔹 FUNCIÓN CLAVE: Reinicia el estado para evitar redirecciones automáticas
     fun limpiarEstado() {
         _medicamentoState.value = MedicamentoState.Idle
+    }
+
+    // 🔹 LÓGICA DE ORDENAMIENTO INTELIGENTE
+    private fun ordenarPorProximaToma(lista: List<Medicamento>): List<Medicamento> {
+        val sdf = SimpleDateFormat("HH:mm", Locale.getDefault())
+        val ahora = Calendar.getInstance()
+        val horaActualStr = sdf.format(ahora.time) // Ej: "14:30"
+
+        // 1. Separamos en dos grupos:
+        //    - "Hoy": Las que son MAYORES o IGUALES a la hora actual.
+        //    - "Mañana": Las que son MENORES a la hora actual.
+        val (hoy, manana) = lista.partition { it.proximaToma >= horaActualStr }
+
+        // 2. Ordenamos cada subgrupo por hora ascendente
+        // 3. Ponemos primero las de hoy, luego las de mañana
+        return hoy.sortedBy { it.proximaToma } + manana.sortedBy { it.proximaToma }
     }
 
     fun obtenerMedicamentos() {
@@ -47,7 +65,10 @@ class MedicamentoViewModel(
             val result = repo.obtenerMedicamentos()
 
             _medicamentoState.value = if (result.isSuccess) {
-                MedicamentoState.Success(result.getOrNull() ?: emptyList())
+                val listaCruda = result.getOrNull() ?: emptyList()
+                // APLICAMOS EL ORDENAMIENTO AQUÍ
+                val listaOrdenada = ordenarPorProximaToma(listaCruda)
+                MedicamentoState.Success(listaOrdenada)
             } else {
                 MedicamentoState.Error(result.exceptionOrNull()?.message ?: "Error desconocido")
             }
@@ -68,24 +89,17 @@ class MedicamentoViewModel(
         }
     }
 
-    // Versión OFFLINE: Solo guarda los datos en Firestore, la foto ya viene como ruta local
     fun crearMedicamento(medicamento: Medicamento) {
         viewModelScope.launch {
             _medicamentoState.value = MedicamentoState.Loading
-
             try {
-                // Ya no subimos nada a Storage.
-                // Confiamos en que 'medicamento.fotoUrl' ya tiene la ruta local del archivo.
-
                 val result = repo.crearMedicamento(medicamento)
-
                 if (result.isSuccess) {
-                    obtenerMedicamentos() // Recargar lista
-                    _medicamentoState.value = MedicamentoState.Success(emptyList())
+                    obtenerMedicamentos()
+                    _medicamentoState.value = MedicamentoState.Success(emptyList()) // Estado temporal para navegar
                 } else {
                     throw Exception(result.exceptionOrNull()?.message)
                 }
-
             } catch (e: Exception) {
                 _medicamentoState.value = MedicamentoState.Error(e.message ?: "Error desconocido")
             }
@@ -95,9 +109,7 @@ class MedicamentoViewModel(
     fun actualizarMedicamento(medicamentoId: String, medicamento: Medicamento) {
         viewModelScope.launch {
             _medicamentoDetailState.value = MedicamentoDetailState.Loading
-
             val result = repo.actualizarMedicamento(medicamentoId, medicamento)
-
             _medicamentoDetailState.value = if (result.isSuccess) {
                 MedicamentoDetailState.Success(medicamento)
             } else {
@@ -109,51 +121,36 @@ class MedicamentoViewModel(
     fun eliminarMedicamento(medicamentoId: String) {
         viewModelScope.launch {
             val result = repo.eliminarMedicamento(medicamentoId)
-
             if (result.isSuccess) {
-                obtenerMedicamentos()  // Recargar la lista
+                obtenerMedicamentos()
             }
         }
     }
 
-    // 🔹 NUEVA FUNCIÓN: Marcar como tomado y reprogramar alarmas
     fun marcarComoTomado(context: Context, medicamento: Medicamento) {
         viewModelScope.launch {
-            // 1. Calcular la NUEVA hora de toma sumando el intervalo
             val nuevaHora = TimeUtils.sumarHoras(medicamento.proximaToma, medicamento.intervalo)
+            val medicamentoActualizado = medicamento.copy(proximaToma = nuevaHora)
 
-            // 2. Crear objeto actualizado con la nueva hora
-            val medicamentoActualizado = medicamento.copy(
-                proximaToma = nuevaHora
-            )
-
-            // 3. Actualizar en Firestore
             val result = repo.actualizarMedicamento(medicamento.id, medicamentoActualizado)
 
             if (result.isSuccess) {
-                // 4. Cancelar la ALERTA DE EMERGENCIA de la dosis que acabamos de tomar
                 AlarmScheduler.cancelarAlarmaEmergencia(context, medicamento.nombre)
 
-                // 5. Programar el RECORDATORIO de la SIGUIENTE dosis
                 AlarmScheduler.programarAlarma(
                     context,
                     medicamentoActualizado.nombre,
                     medicamentoActualizado.dosis.toString(),
                     nuevaHora
                 )
-
-                // 6. Programar la ALERTA DE EMERGENCIA de la SIGUIENTE dosis (para seguridad futura)
                 AlarmScheduler.programarAlarmaEmergencia(
                     context,
                     medicamentoActualizado.nombre,
                     nuevaHora
                 )
 
-                // 7. Refrescar la vista de detalle y la lista general
                 obtenerMedicamento(medicamento.id)
-                obtenerMedicamentos()
-            } else {
-                // Opcional: Manejar error de conexión o base de datos
+                obtenerMedicamentos() // Esto volverá a ordenar la lista automáticamente
             }
         }
     }

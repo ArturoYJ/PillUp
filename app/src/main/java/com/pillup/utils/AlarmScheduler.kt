@@ -77,8 +77,7 @@ object AlarmScheduler {
                     add(Calendar.DATE, 1)
                 }
 
-                // TOLERANCIA: 2 minutos para pruebas (cámbialo a 15 para real)
-                add(Calendar.MINUTE, 2)
+                add(Calendar.MINUTE, 3)
             }
 
             val intent = Intent(context, AlarmReceiver::class.java).apply {
