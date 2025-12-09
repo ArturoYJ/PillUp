@@ -7,6 +7,7 @@ import com.pillup.data.repository.MedicamentoRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import android.net.Uri
 
 sealed class MedicamentoState {
     object Idle : MedicamentoState()
@@ -65,21 +66,29 @@ class MedicamentoViewModel(
         }
     }
 
+    // Versión OFFLINE: Solo guarda los datos en Firestore, la foto ya viene como ruta local
     fun crearMedicamento(medicamento: Medicamento) {
         viewModelScope.launch {
             _medicamentoState.value = MedicamentoState.Loading
 
-            val result = repo.crearMedicamento(medicamento)
+            try {
+                // Ya no subimos nada a Storage.
+                // Confiamos en que 'medicamento.fotoUrl' ya tiene la ruta local del archivo.
 
-            _medicamentoState.value = if (result.isSuccess) {
-                obtenerMedicamentos()  // Recargar la lista en segundo plano
-                MedicamentoState.Success(emptyList())
-            } else {
-                MedicamentoState.Error(result.exceptionOrNull()?.message ?: "Error desconocido")
+                val result = repo.crearMedicamento(medicamento)
+
+                if (result.isSuccess) {
+                    obtenerMedicamentos() // Recargar lista
+                    _medicamentoState.value = MedicamentoState.Success(emptyList())
+                } else {
+                    throw Exception(result.exceptionOrNull()?.message)
+                }
+
+            } catch (e: Exception) {
+                _medicamentoState.value = MedicamentoState.Error(e.message ?: "Error desconocido")
             }
         }
     }
-
     fun actualizarMedicamento(medicamentoId: String, medicamento: Medicamento) {
         viewModelScope.launch {
             _medicamentoDetailState.value = MedicamentoDetailState.Loading

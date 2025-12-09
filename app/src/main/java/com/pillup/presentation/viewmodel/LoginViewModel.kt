@@ -19,6 +19,21 @@ class LoginViewModel(
     private val _currentUser = MutableStateFlow<UserData?>(null)
     val currentUser: StateFlow<UserData?> = _currentUser
 
+    fun cargarUsuarioActual() {
+        // Verificamos si Firebase ya tiene un usuario en sesión
+        val uid = repo.getCurrentUser()?.uid
+
+        if (uid != null) {
+            viewModelScope.launch {
+                // Buscamos sus datos (Nombre, Apellido, etc.) en Firestore
+                val result = repo.obtenerDatosUsuario(uid)
+
+                if (result.isSuccess) {
+                    _currentUser.value = result.getOrNull()
+                }
+            }
+        }
+    }
     fun login(email: String, password: String) {
         viewModelScope.launch {
             _loginState.value = LoginState.Loading

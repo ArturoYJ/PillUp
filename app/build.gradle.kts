@@ -80,5 +80,10 @@ dependencies {
 
     implementation("androidx.compose.material:material-icons-extended")
 
+    // Firebase Storage
+    implementation("com.google.firebase:firebase-storage")
+
+    // Coil (Para mostrar imágenes en Compose)
+    implementation("io.coil-kt:coil-compose:2.6.0")
 
 }

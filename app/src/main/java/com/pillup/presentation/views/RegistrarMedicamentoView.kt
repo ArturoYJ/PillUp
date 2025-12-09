@@ -1,5 +1,8 @@
 package com.pillup.presentation.view
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -7,21 +10,26 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.DateRange
+import java.io.FileOutputStream
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.FileProvider
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.pillup.data.model.Medicamento
 import com.pillup.presentation.viewmodel.MedicamentoViewModel
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -35,16 +43,40 @@ fun RegistrarMedicamentoView(
 
     // --- Variables del Formulario ---
     var nombre by remember { mutableStateOf("") }
-    var dosis by remember { mutableStateOf(1) }
+    var dosis by remember { mutableIntStateOf(1) }
     var primeraToma by remember { mutableStateOf("") }
-    var intervalo by remember { mutableStateOf(8) }
+    var intervalo by remember { mutableIntStateOf(8) }
     var duracion by remember { mutableStateOf("") }
     var importancia by remember { mutableStateOf("Media") }
     var instrucciones by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
 
-    // Bandera local para controlar cuándo estamos guardando nosotros
+    // Bandera local para controlar cuándo estamos guardando
     var isSaving by remember { mutableStateOf(false) }
+
+    // --- VARIABLES PARA CÁMARA (NUEVO) ---
+    var fotoUri by remember { mutableStateOf<Uri?>(null) } // Foto final a mostrar/guardar
+    var tempUri by remember { mutableStateOf<Uri?>(null) } // Uri temporal para la cámara
+    val context = LocalContext.current
+
+    // Lanzador de cámara
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success && tempUri != null) {
+            fotoUri = tempUri // Si tomó la foto, la guardamos en la variable principal
+        }
+    }
+
+    // Función auxiliar para crear el archivo temporal
+    fun crearArchivoTemporal(): Uri {
+        val file = File(context.cacheDir, "foto_med_${System.currentTimeMillis()}.jpg")
+        return FileProvider.getUriForFile(
+            context,
+            "${context.packageName}.provider", // Debe coincidir con AndroidManifest
+            file
+        )
+    }
 
     // --- Lógica del Calendario ---
     var showDateRangePicker by remember { mutableStateOf(false) }
@@ -52,7 +84,7 @@ fun RegistrarMedicamentoView(
 
     fun convertMillisToDate(millis: Long): String {
         val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-        formatter.timeZone = java.util.TimeZone.getTimeZone("UTC")
+        formatter.timeZone = java.util.TimeZone.getTimeZone("UTC") // Corrección de fecha
         return formatter.format(Date(millis))
     }
 
@@ -100,21 +132,20 @@ fun RegistrarMedicamentoView(
         viewModel.limpiarEstado()
     }
 
-    // Reacción al guardado (Solo si isSaving es true)
+    // Reacción al guardado
     LaunchedEffect(medicamentoState) {
-        if (isSaving) { // IMPORTANTE: Solo reacciona si nosotros iniciamos el guardado
+        if (isSaving) {
             when (medicamentoState) {
                 is com.pillup.presentation.viewmodel.MedicamentoState.Success -> {
-                    isSaving = false // Resetear bandera
+                    isSaving = false
                     viewModel.limpiarEstado()
-
                     // Navegar a la lista
                     navController.navigate("ver_todos_medicamentos") {
                         popUpTo("registrar_medicamento") { inclusive = true }
                     }
                 }
                 is com.pillup.presentation.viewmodel.MedicamentoState.Error -> {
-                    isSaving = false // Resetear bandera para permitir reintentar
+                    isSaving = false
                     errorMessage = (medicamentoState as com.pillup.presentation.viewmodel.MedicamentoState.Error).message
                 }
                 else -> {}
@@ -137,7 +168,7 @@ fun RegistrarMedicamentoView(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = { navController.popBackStack() }) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "Volver", tint = Color(0xFF02316E))
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = Color(0xFF02316E))
             }
         }
 
@@ -251,7 +282,7 @@ fun RegistrarMedicamentoView(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Duración (Campo Mejorado con Box Clickable)
+        // Duración
         Text(
             text = "Duración del tratamiento:",
             fontSize = 12.sp,
@@ -264,7 +295,7 @@ fun RegistrarMedicamentoView(
                 value = duracion,
                 onValueChange = { },
                 modifier = Modifier.fillMaxWidth(),
-                readOnly = true, // Solo lectura visual
+                readOnly = true,
                 placeholder = { Text("Seleccionar fechas") },
                 shape = RoundedCornerShape(8.dp),
                 trailingIcon = {
@@ -275,7 +306,6 @@ fun RegistrarMedicamentoView(
                     )
                 }
             )
-            // Box invisible que captura el clic con seguridad
             Box(
                 modifier = Modifier
                     .matchParentSize()
@@ -334,13 +364,36 @@ fun RegistrarMedicamentoView(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Botón Foto
-        OutlinedButton(
-            onClick = {},
+        // --- SECCIÓN FOTO (ACTUALIZADA) ---
+        Row(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(8.dp)
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Text("📷 Foto", color = Color(0xFF02316E), fontSize = 14.sp)
+            // Botón para tomar foto
+            OutlinedButton(
+                onClick = {
+                    tempUri = crearArchivoTemporal() // 1. Crear archivo
+                    cameraLauncher.launch(tempUri!!) // 2. Lanzar cámara
+                },
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Text(if (fotoUri == null) "📷 Tomar Foto" else "📷 Cambiar Foto",
+                    color = Color(0xFF02316E), fontSize = 14.sp)
+            }
+
+            // Previsualización (Miniatura)
+            if (fotoUri != null) {
+                AsyncImage(
+                    model = fotoUri,
+                    contentDescription = "Foto medicamento",
+                    modifier = Modifier
+                        .size(50.dp)
+                        .background(Color.LightGray, RoundedCornerShape(8.dp)),
+                    contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(20.dp))
@@ -351,19 +404,41 @@ fun RegistrarMedicamentoView(
             Spacer(modifier = Modifier.height(12.dp))
         }
 
-        // Botón Registrar
         Button(
             onClick = {
                 if (nombre.isBlank()) {
                     errorMessage = "El nombre del medicamento es requerido"
                 } else {
-                    isSaving = true // Activamos la bandera: "Estamos guardando"
+                    isSaving = true
 
+                    // 1. Lógica de Fecha (Próxima toma)
                     val proximaTomaCalculada = com.pillup.utils.TimeUtils.calcularProximaToma(
                         primeraToma = primeraToma,
                         intervaloHoras = intervalo
                     )
 
+                    // 2. Lógica de Foto LOCAL
+                    var rutaFotoLocal = ""
+                    if (fotoUri != null) {
+                        try {
+                            // Creamos un archivo permanente en la carpeta de la app
+                            val nombreArchivo = "img_${System.currentTimeMillis()}.jpg"
+                            val archivoPermanente = File(context.filesDir, nombreArchivo)
+
+                            // Copiamos los bytes de la foto temporal al archivo permanente
+                            context.contentResolver.openInputStream(fotoUri!!)?.use { input ->
+                                FileOutputStream(archivoPermanente).use { output ->
+                                    input.copyTo(output)
+                                }
+                            }
+                            // Guardamos la ruta absoluta (ej: /data/user/0/com.pillup/files/img_123.jpg)
+                            rutaFotoLocal = archivoPermanente.absolutePath
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
+                    }
+
+                    // 3. Crear objeto (ahora incluimos la fotoUrl aquí directo)
                     val medicamento = Medicamento(
                         nombre = nombre,
                         dosis = dosis,
@@ -372,8 +447,11 @@ fun RegistrarMedicamentoView(
                         duracion = duracion,
                         importancia = importancia,
                         instrucciones = instrucciones,
-                        proximaToma = proximaTomaCalculada
+                        proximaToma = proximaTomaCalculada,
+                        fotoUrl = rutaFotoLocal // <--- Aquí va la ruta local
                     )
+
+                    // 4. Llamar al ViewModel (ya no pide uri, solo el objeto)
                     viewModel.crearMedicamento(medicamento)
                 }
             },
@@ -382,7 +460,6 @@ fun RegistrarMedicamentoView(
                 .height(50.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF02316E)),
             shape = RoundedCornerShape(12.dp),
-            // Deshabilitar botón mientras carga para evitar doble clic
             enabled = medicamentoState != com.pillup.presentation.viewmodel.MedicamentoState.Loading
         ) {
             if (medicamentoState == com.pillup.presentation.viewmodel.MedicamentoState.Loading) {
@@ -391,7 +468,6 @@ fun RegistrarMedicamentoView(
                 Text("Registrar", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
             }
         }
-
         Spacer(modifier = Modifier.height(20.dp))
     }
 }

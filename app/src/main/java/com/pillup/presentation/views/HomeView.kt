@@ -48,6 +48,7 @@ fun HomeView(
     // Cargar medicamentos al entrar
     LaunchedEffect(Unit) {
         medicamentoViewModel.obtenerMedicamentos()
+        loginViewModel.cargarUsuarioActual()
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -69,17 +70,17 @@ fun HomeView(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Saludo
-            if (currentUser != null) {
-                Text(
-                    text = "Bienvenido ${currentUser?.nombre ?: "Usuario"}",                    fontSize = 32.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF02316E),
-                    modifier = Modifier
-                        .fillMaxWidth(0.9f)
-                        .padding(start = 16.dp)
-                )
-            }
+            val nombreMostrar = currentUser?.nombre ?: "Usuario"
+
+            Text(
+                text = "Bienvenido $nombreMostrar",
+                fontSize = 32.sp, // Tamaño grande como en tu diseño
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF02316E), // Azul oscuro
+                modifier = Modifier
+                    .fillMaxWidth(0.9f)
+                    .padding(start = 16.dp)
+            )
 
             Spacer(modifier = Modifier.height(20.dp))
 

@@ -4,10 +4,15 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.pillup.data.model.Medicamento
 import kotlinx.coroutines.tasks.await
+import com.google.firebase.storage.FirebaseStorage
+import android.net.Uri
+import java.util.UUID
 
 class  MedicamentoRepository(
     private val auth: FirebaseAuth = FirebaseAuth.getInstance(),
-    private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
+    private val db: FirebaseFirestore = FirebaseFirestore.getInstance(),
+    private val storage: FirebaseStorage = FirebaseStorage.getInstance()
+
 ) {
 
     // 🔹 CREAR MEDICAMENTO
@@ -102,6 +107,26 @@ class  MedicamentoRepository(
                 .await()
 
             Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+    suspend fun subirImagen(imageUri: Uri): Result<String> {
+        return try {
+            val uid = auth.currentUser?.uid ?: throw Exception("Usuario no autenticado")
+            // Creamos un nombre único para la imagen
+            val fileName = "${UUID.randomUUID()}.jpg"
+
+            // Referencia: users/{uid}/medicamentos/{fileName}
+            val ref = storage.reference.child("users/$uid/medicamentos/$fileName")
+
+            // Subir archivo
+            ref.putFile(imageUri).await()
+
+            // Obtener URL de descarga
+            val downloadUrl = ref.downloadUrl.await()
+
+            Result.success(downloadUrl.toString())
         } catch (e: Exception) {
             Result.failure(e)
         }
