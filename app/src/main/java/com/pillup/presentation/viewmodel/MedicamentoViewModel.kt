@@ -1,13 +1,15 @@
 package com.pillup.presentation.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pillup.data.model.Medicamento
 import com.pillup.data.repository.MedicamentoRepository
+import com.pillup.utils.AlarmScheduler
+import com.pillup.utils.TimeUtils
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import android.net.Uri
 
 sealed class MedicamentoState {
     object Idle : MedicamentoState()
@@ -89,6 +91,7 @@ class MedicamentoViewModel(
             }
         }
     }
+
     fun actualizarMedicamento(medicamentoId: String, medicamento: Medicamento) {
         viewModelScope.launch {
             _medicamentoDetailState.value = MedicamentoDetailState.Loading
@@ -113,13 +116,13 @@ class MedicamentoViewModel(
         }
     }
 
-    fun marcarComoTomado(context: android.content.Context, medicamento: Medicamento) {
+    // 🔹 NUEVA FUNCIÓN: Marcar como tomado y reprogramar alarmas
+    fun marcarComoTomado(context: Context, medicamento: Medicamento) {
         viewModelScope.launch {
-            // 1. Calcular la NUEVA hora de toma
-            // Usamos la hora "proximaToma" actual como base, o la hora actual si prefieres
-            val nuevaHora = com.pillup.utils.TimeUtils.sumarHoras(medicamento.proximaToma, medicamento.intervalo)
+            // 1. Calcular la NUEVA hora de toma sumando el intervalo
+            val nuevaHora = TimeUtils.sumarHoras(medicamento.proximaToma, medicamento.intervalo)
 
-            // 2. Crear objeto actualizado
+            // 2. Crear objeto actualizado con la nueva hora
             val medicamentoActualizado = medicamento.copy(
                 proximaToma = nuevaHora
             )
@@ -128,18 +131,30 @@ class MedicamentoViewModel(
             val result = repo.actualizarMedicamento(medicamento.id, medicamentoActualizado)
 
             if (result.isSuccess) {
-                // 4. Si se guardó bien, reprogramamos la alarma para la nueva hora
-                com.pillup.utils.AlarmScheduler.programarAlarma(
-                    context = context,
-                    nombre = medicamentoActualizado.nombre,
-                    dosis = medicamentoActualizado.dosis.toString(),
-                    horaToma = nuevaHora
+                // 4. Cancelar la ALERTA DE EMERGENCIA de la dosis que acabamos de tomar
+                AlarmScheduler.cancelarAlarmaEmergencia(context, medicamento.nombre)
+
+                // 5. Programar el RECORDATORIO de la SIGUIENTE dosis
+                AlarmScheduler.programarAlarma(
+                    context,
+                    medicamentoActualizado.nombre,
+                    medicamentoActualizado.dosis.toString(),
+                    nuevaHora
                 )
 
+                // 6. Programar la ALERTA DE EMERGENCIA de la SIGUIENTE dosis (para seguridad futura)
+                AlarmScheduler.programarAlarmaEmergencia(
+                    context,
+                    medicamentoActualizado.nombre,
+                    nuevaHora
+                )
+
+                // 7. Refrescar la vista de detalle y la lista general
                 obtenerMedicamento(medicamento.id)
+                obtenerMedicamentos()
             } else {
+                // Opcional: Manejar error de conexión o base de datos
             }
         }
     }
-
 }

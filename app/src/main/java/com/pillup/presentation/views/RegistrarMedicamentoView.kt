@@ -365,7 +365,6 @@ fun RegistrarMedicamentoView(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // --- SECCIÓN FOTO (ACTUALIZADA) ---
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -456,12 +455,8 @@ fun RegistrarMedicamentoView(
                     viewModel.crearMedicamento(medicamento)
 
                     // Usamos la 'primeraToma' que el usuario ingresó
-                    AlarmScheduler.programarAlarma(
-                        context = context,
-                        nombre = nombre,
-                        dosis = dosis.toString(),
-                        horaToma = primeraToma
-                    )
+                    AlarmScheduler.programarAlarma(context, nombre, dosis.toString(), primeraToma)
+                    AlarmScheduler.programarAlarmaEmergencia(context, nombre, primeraToma)
 
                 }
             },
