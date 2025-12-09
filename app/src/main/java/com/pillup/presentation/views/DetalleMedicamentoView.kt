@@ -141,7 +141,7 @@ fun DetalleMedicamentoView(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     OutlinedButton(
-                        onClick = { navController.popBackStack() },
+                        onClick = { navController.navigate("editar_medicamento/$medicamentoId") }, // Navega a la nueva vista
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(8.dp)
                     ) {
