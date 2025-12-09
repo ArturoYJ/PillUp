@@ -4,13 +4,16 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.pillup.data.model.Medicamento
 import kotlinx.coroutines.tasks.await
+import com.google.firebase.storage.FirebaseStorage
+import android.net.Uri
+import java.util.UUID
 
 class  MedicamentoRepository(
     private val auth: FirebaseAuth = FirebaseAuth.getInstance(),
-    private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
-) {
+    private val db: FirebaseFirestore = FirebaseFirestore.getInstance(),
+    private val storage: FirebaseStorage = FirebaseStorage.getInstance()
 
-    // 🔹 CREAR MEDICAMENTO
+) {
     suspend fun crearMedicamento(medicamento: Medicamento): Result<String> {
         return try {
             val uid = auth.currentUser?.uid ?: throw Exception("Usuario no autenticado")
@@ -27,8 +30,6 @@ class  MedicamentoRepository(
             Result.failure(e)
         }
     }
-
-    // 🔹 OBTENER MEDICAMENTOS DEL USUARIO
     suspend fun obtenerMedicamentos(): Result<List<Medicamento>> {
         return try {
             val uid = auth.currentUser?.uid ?: throw Exception("Usuario no autenticado")
@@ -48,8 +49,6 @@ class  MedicamentoRepository(
             Result.failure(e)
         }
     }
-
-    // 🔹 OBTENER UN MEDICAMENTO POR ID
     suspend fun obtenerMedicamento(medicamentoId: String): Result<Medicamento> {
         return try {
             val uid = auth.currentUser?.uid ?: throw Exception("Usuario no autenticado")
@@ -70,8 +69,6 @@ class  MedicamentoRepository(
             Result.failure(e)
         }
     }
-
-    // 🔹 ACTUALIZAR MEDICAMENTO
     suspend fun actualizarMedicamento(medicamentoId: String, medicamento: Medicamento): Result<Unit> {
         return try {
             val uid = auth.currentUser?.uid ?: throw Exception("Usuario no autenticado")
@@ -88,8 +85,6 @@ class  MedicamentoRepository(
             Result.failure(e)
         }
     }
-
-    // 🔹 ELIMINAR MEDICAMENTO
     suspend fun eliminarMedicamento(medicamentoId: String): Result<Unit> {
         return try {
             val uid = auth.currentUser?.uid ?: throw Exception("Usuario no autenticado")
@@ -102,6 +97,22 @@ class  MedicamentoRepository(
                 .await()
 
             Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+    suspend fun subirImagen(imageUri: Uri): Result<String> {
+        return try {
+            val uid = auth.currentUser?.uid ?: throw Exception("Usuario no autenticado")
+            val fileName = "${UUID.randomUUID()}.jpg"
+
+            val ref = storage.reference.child("users/$uid/medicamentos/$fileName")
+
+            ref.putFile(imageUri).await()
+
+            val downloadUrl = ref.downloadUrl.await()
+
+            Result.success(downloadUrl.toString())
         } catch (e: Exception) {
             Result.failure(e)
         }

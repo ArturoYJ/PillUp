@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -17,6 +16,11 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.pillup.data.model.ContactoEmergencia
 import com.pillup.presentation.viewmodel.ContactoEmergenciaViewModel
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.core.text.isDigitsOnly
 
 @Composable
 fun FormularioEmergenciaView(
@@ -31,7 +35,6 @@ fun FormularioEmergenciaView(
 
     val contactoState by viewModel.contactoState.collectAsState()
 
-    // Cargar datos existentes si existen
     LaunchedEffect(Unit) {
         viewModel.obtenerContactoEmergencia()
     }
@@ -58,7 +61,7 @@ fun FormularioEmergenciaView(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = { navController.popBackStack() }) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "Volver", tint = Color(0xFF02316E))
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = Color(0xFF02316E))
             }
         }
 
@@ -96,15 +99,20 @@ fun FormularioEmergenciaView(
             color = Color(0xFF02316E),
             fontSize = 14.sp
         )
+
         OutlinedTextField(
             value = telefono,
-            onValueChange = {
-                telefono = it
-                errorMessage = ""
+            onValueChange = { newValue ->
+                if (newValue.all { it.isDigit() || " +()-".contains(it) }) {
+                    telefono = newValue
+                    errorMessage = ""
+                }
             },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(8.dp),
-            placeholder = { Text("Ej: +1 (234) 567-8900") }
+            placeholder = { Text("Ej: +52 123 456 7890") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+            singleLine = true
         )
 
         Spacer(modifier = Modifier.height(16.dp))

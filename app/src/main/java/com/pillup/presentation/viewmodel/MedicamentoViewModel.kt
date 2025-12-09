@@ -1,12 +1,18 @@
 package com.pillup.presentation.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pillup.data.model.Medicamento
 import com.pillup.data.repository.MedicamentoRepository
+import com.pillup.utils.AlarmScheduler
+import com.pillup.utils.TimeUtils
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 
 sealed class MedicamentoState {
     object Idle : MedicamentoState()
@@ -32,9 +38,15 @@ class MedicamentoViewModel(
     private val _medicamentoDetailState = MutableStateFlow<MedicamentoDetailState>(MedicamentoDetailState.Idle)
     val medicamentoDetailState: StateFlow<MedicamentoDetailState> = _medicamentoDetailState
 
-    // 🔹 FUNCIÓN CLAVE: Reinicia el estado para evitar redirecciones automáticas
     fun limpiarEstado() {
         _medicamentoState.value = MedicamentoState.Idle
+    }
+    private fun ordenarPorProximaToma(lista: List<Medicamento>): List<Medicamento> {
+        val sdf = SimpleDateFormat("HH:mm", Locale.getDefault())
+        val ahora = Calendar.getInstance()
+        val horaActualStr = sdf.format(ahora.time)
+        val (hoy, manana) = lista.partition { it.proximaToma >= horaActualStr }
+        return hoy.sortedBy { it.proximaToma } + manana.sortedBy { it.proximaToma }
     }
 
     fun obtenerMedicamentos() {
@@ -44,7 +56,9 @@ class MedicamentoViewModel(
             val result = repo.obtenerMedicamentos()
 
             _medicamentoState.value = if (result.isSuccess) {
-                MedicamentoState.Success(result.getOrNull() ?: emptyList())
+                val listaCruda = result.getOrNull() ?: emptyList()
+                val listaOrdenada = ordenarPorProximaToma(listaCruda)
+                MedicamentoState.Success(listaOrdenada)
             } else {
                 MedicamentoState.Error(result.exceptionOrNull()?.message ?: "Error desconocido")
             }
@@ -68,14 +82,16 @@ class MedicamentoViewModel(
     fun crearMedicamento(medicamento: Medicamento) {
         viewModelScope.launch {
             _medicamentoState.value = MedicamentoState.Loading
-
-            val result = repo.crearMedicamento(medicamento)
-
-            _medicamentoState.value = if (result.isSuccess) {
-                obtenerMedicamentos()  // Recargar la lista en segundo plano
-                MedicamentoState.Success(emptyList())
-            } else {
-                MedicamentoState.Error(result.exceptionOrNull()?.message ?: "Error desconocido")
+            try {
+                val result = repo.crearMedicamento(medicamento)
+                if (result.isSuccess) {
+                    obtenerMedicamentos()
+                    _medicamentoState.value = MedicamentoState.Success(emptyList()) // Estado temporal para navegar
+                } else {
+                    throw Exception(result.exceptionOrNull()?.message)
+                }
+            } catch (e: Exception) {
+                _medicamentoState.value = MedicamentoState.Error(e.message ?: "Error desconocido")
             }
         }
     }
@@ -83,9 +99,7 @@ class MedicamentoViewModel(
     fun actualizarMedicamento(medicamentoId: String, medicamento: Medicamento) {
         viewModelScope.launch {
             _medicamentoDetailState.value = MedicamentoDetailState.Loading
-
             val result = repo.actualizarMedicamento(medicamentoId, medicamento)
-
             _medicamentoDetailState.value = if (result.isSuccess) {
                 MedicamentoDetailState.Success(medicamento)
             } else {
@@ -97,9 +111,36 @@ class MedicamentoViewModel(
     fun eliminarMedicamento(medicamentoId: String) {
         viewModelScope.launch {
             val result = repo.eliminarMedicamento(medicamentoId)
+            if (result.isSuccess) {
+                obtenerMedicamentos()
+            }
+        }
+    }
+
+    fun marcarComoTomado(context: Context, medicamento: Medicamento) {
+        viewModelScope.launch {
+            val nuevaHora = TimeUtils.sumarHoras(medicamento.proximaToma, medicamento.intervalo)
+            val medicamentoActualizado = medicamento.copy(proximaToma = nuevaHora)
+
+            val result = repo.actualizarMedicamento(medicamento.id, medicamentoActualizado)
 
             if (result.isSuccess) {
-                obtenerMedicamentos()  // Recargar la lista
+                AlarmScheduler.cancelarAlarmaEmergencia(context, medicamento.nombre)
+
+                AlarmScheduler.programarAlarma(
+                    context,
+                    medicamentoActualizado.nombre,
+                    medicamentoActualizado.dosis.toString(),
+                    nuevaHora
+                )
+                AlarmScheduler.programarAlarmaEmergencia(
+                    context,
+                    medicamentoActualizado.nombre,
+                    nuevaHora
+                )
+
+                obtenerMedicamento(medicamento.id)
+                obtenerMedicamentos()
             }
         }
     }

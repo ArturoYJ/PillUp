@@ -1,11 +1,13 @@
 package com.pillup.presentation.view
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -15,6 +17,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
+import java.io.File
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.draw.clip
 import com.pillup.presentation.viewmodel.MedicamentoViewModel
 
 @Composable
@@ -23,7 +29,7 @@ fun DetalleMedicamentoView(
     viewModel: MedicamentoViewModel,
     medicamentoId: String
 ) {
-
+    val context = androidx.compose.ui.platform.LocalContext.current
     val medicamentoDetailState by viewModel.medicamentoDetailState.collectAsState()
 
     LaunchedEffect(Unit) {
@@ -42,13 +48,29 @@ fun DetalleMedicamentoView(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = { navController.popBackStack() }) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "Volver", tint = Color(0xFF02316E))
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = Color(0xFF02316E))
             }
         }
 
         when (medicamentoDetailState) {
             is com.pillup.presentation.viewmodel.MedicamentoDetailState.Success -> {
                 val med = (medicamentoDetailState as com.pillup.presentation.viewmodel.MedicamentoDetailState.Success).medicamento
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                if (med.fotoUrl.isNotEmpty()) {
+                    AsyncImage(
+                        model = File(med.fotoUrl),
+                        contentDescription = med.nombre,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(Color.White),
+                        contentScale = ContentScale.Crop
+                    )
+                    Spacer(modifier = Modifier.height(20.dp))
+                }
 
                 Text(
                     text = "Tú medicamento",
@@ -136,12 +158,41 @@ fun DetalleMedicamentoView(
 
                 Spacer(modifier = Modifier.height(20.dp))
 
+                Button(
+                    onClick = {
+                        viewModel.marcarComoTomado(context, med)
+                        android.widget.Toast.makeText(context, "¡Dosis registrada! Próxima: ${com.pillup.utils.TimeUtils.sumarHoras(med.proximaToma, med.intervalo)}", android.widget.Toast.LENGTH_LONG).show()
+                        navController.popBackStack()
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(60.dp), // Más alto para que destaque
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)),
+                    shape = RoundedCornerShape(16.dp),
+                    elevation = ButtonDefaults.buttonElevation(8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = null,
+                        tint = Color.White
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "MARCAR COMO TOMADO",
+                        color = Color.White,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     OutlinedButton(
-                        onClick = { navController.popBackStack() },
+                        onClick = { navController.navigate("editar_medicamento/$medicamentoId") },
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(8.dp)
                     ) {

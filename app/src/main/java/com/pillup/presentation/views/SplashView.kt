@@ -33,7 +33,6 @@ fun SplashView(navController: NavController) {
         }
     }
 
-    // UI simple
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center

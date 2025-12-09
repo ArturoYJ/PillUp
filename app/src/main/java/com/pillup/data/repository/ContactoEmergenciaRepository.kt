@@ -10,7 +10,6 @@ class ContactoEmergenciaRepository(
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
 ) {
 
-    // 🔹 CREAR O ACTUALIZAR CONTACTO DE EMERGENCIA
     suspend fun guardarContactoEmergencia(contacto: ContactoEmergencia): Result<Unit> {
         return try {
             val uid = auth.currentUser?.uid ?: throw Exception("Usuario no autenticado")
@@ -29,7 +28,6 @@ class ContactoEmergenciaRepository(
         }
     }
 
-    // 🔹 OBTENER CONTACTO DE EMERGENCIA
     suspend fun obtenerContactoEmergencia(): Result<ContactoEmergencia> {
         return try {
             val uid = auth.currentUser?.uid ?: throw Exception("Usuario no autenticado")
@@ -50,7 +48,6 @@ class ContactoEmergenciaRepository(
         }
     }
 
-    // 🔹 ELIMINAR CONTACTO DE EMERGENCIA
     suspend fun eliminarContactoEmergencia(): Result<Unit> {
         return try {
             val uid = auth.currentUser?.uid ?: throw Exception("Usuario no autenticado")
@@ -68,7 +65,6 @@ class ContactoEmergenciaRepository(
         }
     }
 
-    // 🔹 VERIFICAR SI EXISTE CONTACTO DE EMERGENCIA
     suspend fun existeContactoEmergencia(): Result<Boolean> {
         return try {
             val uid = auth.currentUser?.uid ?: throw Exception("Usuario no autenticado")

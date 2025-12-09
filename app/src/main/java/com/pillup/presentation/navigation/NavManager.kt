@@ -4,19 +4,20 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.pillup.presentation.view.*
 import com.pillup.presentation.viewmodel.LoginViewModel
 import com.pillup.presentation.viewmodel.RegisterViewModel
 import com.pillup.presentation.viewmodel.MedicamentoViewModel
 import com.pillup.presentation.viewmodel.ContactoEmergenciaViewModel
+import com.pillup.presentation.views.EditarMedicamentoView
 
 @Composable
 fun NavManager(navController: NavHostController) {
 
-    // ViewModels compartidos entre pantallas
-    val loginViewModel = LoginViewModel()
-    val medicamentoViewModel = MedicamentoViewModel()
-    val contactoEmergenciaViewModel = ContactoEmergenciaViewModel()
+    val loginViewModel: LoginViewModel = viewModel()
+    val medicamentoViewModel: MedicamentoViewModel = viewModel()
+    val contactoEmergenciaViewModel: ContactoEmergenciaViewModel = viewModel()
 
     NavHost(
         navController = navController,
@@ -32,11 +33,12 @@ fun NavManager(navController: NavHostController) {
         }
 
         composable("register") {
-            RegisterView(navController, RegisterViewModel())
+            val registerViewModel: RegisterViewModel = viewModel()
+            RegisterView(navController, registerViewModel)
         }
 
         composable("home") {
-            HomeView(navController, loginViewModel, medicamentoViewModel)
+            HomeView(navController, loginViewModel, medicamentoViewModel, contactoEmergenciaViewModel)
         }
 
         composable("registrar_medicamento") {
@@ -50,6 +52,11 @@ fun NavManager(navController: NavHostController) {
         composable("detalle_medicamento/{medicamentoId}") { backStackEntry ->
             val medicamentoId = backStackEntry.arguments?.getString("medicamentoId") ?: ""
             DetalleMedicamentoView(navController, medicamentoViewModel, medicamentoId)
+        }
+
+        composable("editar_medicamento/{medicamentoId}") { backStackEntry ->
+            val medicamentoId = backStackEntry.arguments?.getString("medicamentoId") ?: ""
+            EditarMedicamentoView(navController, medicamentoViewModel, medicamentoId)
         }
 
         composable("contacto_emergencia") {

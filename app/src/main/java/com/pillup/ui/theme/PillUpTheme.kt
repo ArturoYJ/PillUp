@@ -5,8 +5,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-
-// 🎨 Paleta de colores base de PiilUp (puedes ajustarla después)
 private val LightColors = lightColorScheme(
     primary = AzulFuerte,
     secondary = AzulMedio,
@@ -20,8 +18,6 @@ private val DarkColors = darkColorScheme(
     tertiary = AzulClaro,
 
 )
-
-// 🎨 Theme global de PiilUp
 @Composable
 fun PillUpTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),

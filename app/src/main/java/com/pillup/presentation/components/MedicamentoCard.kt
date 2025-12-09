@@ -18,6 +18,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pillup.data.model.Medicamento
+import coil.compose.AsyncImage
+import androidx.compose.ui.draw.clip
+import java.io.File
 
 @Composable
 fun MedicamentoCard(
@@ -67,13 +70,24 @@ fun MedicamentoCard(
             }
 
             if (medicamento.fotoUrl.isNotEmpty()) {
-                Image(
-                    painter = painterResource(id = android.R.drawable.ic_dialog_info),
-                    contentDescription = medicamento.nombre,
+                AsyncImage(
+                    model = File(medicamento.fotoUrl),
+                    contentDescription = "Foto ${medicamento.nombre}",
                     modifier = Modifier
                         .size(70.dp)
-                        .background(Color.LightGray, RoundedCornerShape(8.dp)),
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(Color.LightGray),
                     contentScale = ContentScale.Crop
+                )
+            } else {
+                Image(
+                    painter = painterResource(id = android.R.drawable.ic_menu_gallery),
+                    contentDescription = "Sin foto",
+                    modifier = Modifier
+                        .size(70.dp)
+                        .background(Color(0xFFF0F0F0), RoundedCornerShape(8.dp))
+                        .padding(15.dp),
+                    colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(Color.Gray)
                 )
             }
         }
